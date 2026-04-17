@@ -1684,9 +1684,6 @@ function Show-DriverVaultGui {
         $scopeCombo.Location = New-Object System.Drawing.Point($scopeComboX, 78)
         $scopeCombo.Size = New-Object System.Drawing.Size($scopeComboWidth, 28)
 
-        $cancelButton.Size = New-Object System.Drawing.Size(88, 28)
-        $cancelButton.Location = New-Object System.Drawing.Point(($actionsPanel.ClientSize.Width - $innerMargin - $cancelButton.Width), 12)
-
         $buttonY = 48
         $buttonHeight = 42
         $buttonGap = 10
@@ -1697,7 +1694,8 @@ function Show-DriverVaultGui {
             [pscustomobject]@{ Control = $validateButton; Width = 116 },
             [pscustomobject]@{ Control = $inspectButton; Width = 116 },
             [pscustomobject]@{ Control = $elevateButton; Width = 96 },
-            [pscustomobject]@{ Control = $openButton; Width = 96 }
+            [pscustomobject]@{ Control = $openButton; Width = 96 },
+            [pscustomobject]@{ Control = $cancelButton; Width = 88 }
         )
         foreach ($item in $actionButtons) {
             $item.Control.Location = New-Object System.Drawing.Point($buttonX, $buttonY)
