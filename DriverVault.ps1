@@ -630,6 +630,22 @@ function Get-SystemToolPath {
     return (Join-Path $env:SystemRoot ("System32\{0}" -f $FileName))
 }
 
+function Get-DriverVaultAssetPath {
+    param([string]$Name)
+
+    $root = if ($PSScriptRoot) {
+        $PSScriptRoot
+    }
+    elseif ($PSCommandPath) {
+        Split-Path -Parent $PSCommandPath
+    }
+    else {
+        (Get-Location).Path
+    }
+
+    return (Join-Path $root ("assets\{0}" -f $Name))
+}
+
 function Invoke-LoggedCommand {
     param(
         [Parameter(Mandatory = $true)]
@@ -1883,6 +1899,21 @@ function Show-DriverVaultGui {
     $form.BackColor = $colors.Window
     $form.Font = New-Object System.Drawing.Font($fontUi, 9.5, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Point)
     $form.ForeColor = $colors.Text
+    $iconPath = Get-DriverVaultAssetPath -Name "DriverVault.ico"
+    if (Test-Path -LiteralPath $iconPath) {
+        try {
+            $windowIcon = New-Object System.Drawing.Icon($iconPath)
+            $form.Icon = $windowIcon
+            $form.Add_FormClosed({
+                if ($windowIcon) {
+                    $windowIcon.Dispose()
+                }
+            })
+        }
+        catch {
+            Write-DriverVaultLog $_.Exception.Message "WARN" -Detail
+        }
+    }
 
     $headerPanel = New-Object System.Windows.Forms.Panel
     $headerPanel.Dock = [System.Windows.Forms.DockStyle]::Top

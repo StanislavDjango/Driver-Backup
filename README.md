@@ -60,6 +60,7 @@ Useful project pages:
 - Checks backup integrity with SHA256 checksums before restore.
 - Runs a dry-run restore check that lists which INF packages would be sent to Windows without installing anything.
 - Shows clear recovery errors such as missing Administrator rights, damaged backup folders, missing INF files and wrong-PC backups.
+- Uses a custom shield, archive and chip icon for the app window and EXE.
 - Keeps a manifest with machine information, driver counts, backup mode and timestamps.
 - Supports Russian and English user interface text.
 - Provides a compact GUI with progress, cancellation, final status and detailed log files.
@@ -128,7 +129,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Build-DriverVaultExe.p
 
 The build script uses PS2EXE and creates `dist\DriverVault.exe`. Generated binaries are not required for development; the `.ps1` and `.cmd` files are enough to run the tool.
 
-GitHub Actions also builds release binaries automatically whenever a version tag like `v0.3.1` is pushed.
+GitHub Actions also builds release binaries automatically whenever a version tag like `v0.3.2` is pushed.
 
 ## License
 

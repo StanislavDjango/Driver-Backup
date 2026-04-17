@@ -8,6 +8,12 @@ All notable changes to DriverVault will be documented in this file.
 - Added contribution and security guidance.
 - Documented command-line usage, backup modes, validation and restore workflow.
 
+## 0.3.2
+
+- Redesigned the DriverVault icon around a shield, archive box and driver chip.
+- Regenerated `assets/DriverVault.png` and `assets/DriverVault.ico` from the reproducible icon script.
+- The PowerShell GUI now uses the DriverVault icon when the `assets` folder is present.
+
 ## 0.3.1
 
 - Added clearer user-facing recovery errors for Administrator rights, busy files, damaged backups, missing INF files and wrong-PC backups.
@@ -59,6 +65,12 @@ All notable changes to DriverVault will be documented in this file.
 - Добавлена подробная документация для GitHub на английском и русском языках.
 - Добавлены правила участия в разработке и заметки по безопасности.
 - Описаны командная строка, режимы сохранения, проверка и восстановление.
+
+## 0.3.2
+
+- Переработана иконка DriverVault: щит, архивная коробка и чип драйвера.
+- `assets/DriverVault.png` и `assets/DriverVault.ico` заново генерируются воспроизводимым скриптом.
+- PowerShell GUI теперь использует иконку DriverVault, если рядом есть папка `assets`.
 
 ## 0.3.1
 

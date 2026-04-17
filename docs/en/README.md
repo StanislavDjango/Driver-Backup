@@ -13,6 +13,7 @@ DriverVault uses built-in Windows tools instead of third-party driver packs. Tha
 - SHA256 integrity file for later validation.
 - Dry-run restore mode that checks the backup and lists which INF packages would be added without installing drivers.
 - Clear recovery errors for missing Administrator rights, busy files, damaged backup folders, missing INF files and wrong-PC backups.
+- Custom shield, archive and chip icon for the app window and EXE.
 - Machine manifest with manufacturer, model, OS and backup metadata.
 - Automatic Administrator restart for backup and restore actions.
 - Cancel button for long operations.
@@ -201,7 +202,7 @@ The build script uses PS2EXE. If PS2EXE is missing, the script can install it fo
 
 ## Automated Releases
 
-GitHub Actions builds the EXE automatically on every push and pull request. When a version tag such as `v0.3.1` is pushed, the workflow also creates or updates a GitHub Release and uploads:
+GitHub Actions builds the EXE automatically on every push and pull request. When a version tag such as `v0.3.2` is pushed, the workflow also creates or updates a GitHub Release and uploads:
 
 - `DriverVault.exe`;
 - `DriverVault.exe.sha256`;
