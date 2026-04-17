@@ -1,5 +1,6 @@
 param(
     [string]$OutputPath = "",
+    [string]$Version = "0.1.1.0",
     [switch]$SkipInstall
 )
 
@@ -53,7 +54,7 @@ Invoke-PS2EXE `
     -description "Backup and restore Windows drivers" `
     -company "DriverVault" `
     -product "DriverVault" `
-    -version "1.0.0.0"
+    -version $Version
 
 $item = Get-Item -LiteralPath $OutputPath
 Write-Host "Built: $($item.FullName)"

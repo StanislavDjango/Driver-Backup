@@ -1393,9 +1393,15 @@ function Show-DriverVaultGui {
         })
 
         $titleLabel = New-DvLabel -Text $Title -X 10 -Y 8 -Size 8 -Color $colors.Muted
+        $titleLabel.AutoSize = $false
+        $titleLabel.AutoEllipsis = $true
+        $titleLabel.Size = New-Object System.Drawing.Size(($Width - 20), 16)
         $panel.Controls.Add($titleLabel)
 
         $valueLabel = New-DvLabel -Text $Value -X 10 -Y 28 -Size 10 -Style ([System.Drawing.FontStyle]::Bold) -Color $ValueColor
+        $valueLabel.AutoSize = $false
+        $valueLabel.AutoEllipsis = $true
+        $valueLabel.Size = New-Object System.Drawing.Size(($Width - 20), 22)
         $panel.Controls.Add($valueLabel)
 
         return [pscustomobject]@{
@@ -1433,9 +1439,15 @@ function Show-DriverVaultGui {
     $headerPanel.Controls.Add($title)
 
     $subtitle = New-DvLabel -Text (T "HeaderSubtitle") -X 28 -Y 48 -Size 9.5 -Color $colors.Muted
+    $subtitle.AutoSize = $false
+    $subtitle.AutoEllipsis = $true
+    $subtitle.Size = New-Object System.Drawing.Size(480, 20)
     $headerPanel.Controls.Add($subtitle)
 
     $adminLabel = New-DvLabel -Text "" -X 28 -Y 76 -Size 9
+    $adminLabel.AutoSize = $false
+    $adminLabel.AutoEllipsis = $true
+    $adminLabel.Size = New-Object System.Drawing.Size(480, 20)
     if (Test-IsAdministrator) {
         $adminLabel.Text = T "AdminYes"
         $adminLabel.ForeColor = $colors.Success
@@ -1473,11 +1485,11 @@ function Show-DriverVaultGui {
     $pathText.BackColor = [System.Drawing.Color]::FromArgb(10, 15, 24)
     $pathText.ForeColor = $colors.Text
     $pathText.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-    $pathText.Anchor = "Top,Left,Right"
+    $pathText.Anchor = "Top,Left"
     $pathPanel.Controls.Add($pathText)
 
     $browseButton = New-DvButton -Text (T "BrowseButton") -X 740 -Y 43 -Width 132 -Height 34 -BackColor $colors.CardAlt
-    $browseButton.Anchor = "Top,Right"
+    $browseButton.Anchor = "Top,Left"
     $browseButton.Add_Click({
         $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
         $dialog.Description = T "BrowseDescription"
@@ -1492,8 +1504,10 @@ function Show-DriverVaultGui {
 
     $zipCheck = New-Object System.Windows.Forms.CheckBox
     $zipCheck.Text = T "ZipCheck"
-    $zipCheck.AutoSize = $true
+    $zipCheck.AutoSize = $false
+    $zipCheck.AutoEllipsis = $true
     $zipCheck.Location = New-Object System.Drawing.Point(20, 82)
+    $zipCheck.Size = New-Object System.Drawing.Size(430, 24)
     $zipCheck.Checked = [bool]$CreateZip
     $zipCheck.ForeColor = $colors.Muted
     $zipCheck.BackColor = [System.Drawing.Color]::Transparent
@@ -1502,6 +1516,9 @@ function Show-DriverVaultGui {
     $pathPanel.Controls.Add($zipCheck)
 
     $scopeLabel = New-DvLabel -Text (T "BackupModeLabel") -X 520 -Y 82 -Size 9 -Color $colors.Muted
+    $scopeLabel.AutoSize = $false
+    $scopeLabel.AutoEllipsis = $true
+    $scopeLabel.Size = New-Object System.Drawing.Size(64, 22)
     $pathPanel.Controls.Add($scopeLabel)
 
     $scopeCombo = New-Object System.Windows.Forms.ComboBox
@@ -1514,6 +1531,7 @@ function Show-DriverVaultGui {
     $scopeCombo.Font = New-Object System.Drawing.Font($fontUi, 9, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Point)
     $scopeCombo.BackColor = [System.Drawing.Color]::FromArgb(10, 15, 24)
     $scopeCombo.ForeColor = $colors.Text
+    $scopeCombo.Anchor = "Top,Left"
     $pathPanel.Controls.Add($scopeCombo)
 
     $actionsPanel = New-DvPanel -X 24 -Y 244 -Width 892 -Height 112 -BackColor $colors.CardAlt
@@ -1550,7 +1568,7 @@ function Show-DriverVaultGui {
     $actionsPanel.Controls.Add($elevateButton)
 
     $openButton = New-DvButton -Text (T "OpenFolder") -X 806 -Y 48 -Width 66 -Height 42
-    $openButton.Anchor = "Top,Right"
+    $openButton.Anchor = "Top,Left"
     $openButton.Add_Click({
         if (Test-Path -LiteralPath $pathText.Text) {
             Start-Process explorer.exe -ArgumentList ('"{0}"' -f $pathText.Text)
@@ -1577,6 +1595,7 @@ function Show-DriverVaultGui {
     $script:GuiSummaryLabel.Location = New-Object System.Drawing.Point(150, 12)
     $script:GuiSummaryLabel.Size = New-Object System.Drawing.Size(724, 20)
     $script:GuiSummaryLabel.AutoSize = $false
+    $script:GuiSummaryLabel.AutoEllipsis = $true
     $script:GuiSummaryLabel.Font = New-Object System.Drawing.Font($fontUi, 9, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Point)
     $script:GuiSummaryLabel.ForeColor = $colors.Muted
     $script:GuiSummaryLabel.BackColor = [System.Drawing.Color]::Transparent
@@ -1606,9 +1625,96 @@ function Show-DriverVaultGui {
     $script:GuiProgressBar = $progress
 
     $statusLabel = New-DvLabel -Text (T "Ready") -X 24 -Y 606 -Size 9 -Color $colors.Muted
+    $statusLabel.AutoSize = $false
+    $statusLabel.AutoEllipsis = $true
+    $statusLabel.Size = New-Object System.Drawing.Size(892, 20)
     $statusLabel.Anchor = "Bottom,Left"
     $form.Controls.Add($statusLabel)
     $script:GuiStatusLabel = $statusLabel
+
+    function Update-DvResponsiveLayout {
+        $outer = 24
+        $panelWidth = [Math]::Max(760, $form.ClientSize.Width - ($outer * 2))
+
+        $pathPanel.Location = New-Object System.Drawing.Point($outer, 118)
+        $pathPanel.Size = New-Object System.Drawing.Size($panelWidth, 110)
+        $actionsPanel.Location = New-Object System.Drawing.Point($outer, 244)
+        $actionsPanel.Size = New-Object System.Drawing.Size($panelWidth, 112)
+        $logPanel.Location = New-Object System.Drawing.Point($outer, 374)
+        $logPanel.Size = New-Object System.Drawing.Size($panelWidth, [Math]::Max(160, $form.ClientSize.Height - 446))
+
+        $progress.Location = New-Object System.Drawing.Point($outer, ($form.ClientSize.Height - 54))
+        $progress.Size = New-Object System.Drawing.Size($panelWidth, 8)
+        $statusLabel.Location = New-Object System.Drawing.Point($outer, ($form.ClientSize.Height - 34))
+        $statusLabel.Size = New-Object System.Drawing.Size($panelWidth, 20)
+
+        $headerRight = [Math]::Max(760, $headerPanel.ClientSize.Width)
+        $gap = 10
+        $lastWidth = 170
+        $smallWidth = 92
+        $cardY = 18
+        $lastX = $headerRight - $outer - $lastWidth
+        $infX = $lastX - $gap - $smallWidth
+        $adminX = $infX - $gap - $smallWidth
+        $adminCard.Panel.Location = New-Object System.Drawing.Point($adminX, $cardY)
+        $infCard.Panel.Location = New-Object System.Drawing.Point($infX, $cardY)
+        $lastCard.Panel.Location = New-Object System.Drawing.Point($lastX, $cardY)
+        $lastCard.Panel.Size = New-Object System.Drawing.Size($lastWidth, 58)
+        $lastCard.ValueLabel.Size = New-Object System.Drawing.Size(($lastWidth - 20), 22)
+        $subtitle.Size = New-Object System.Drawing.Size([Math]::Max(260, $adminX - 56), 20)
+        $adminLabel.Size = New-Object System.Drawing.Size([Math]::Max(260, $adminX - 56), 20)
+
+        $innerMargin = 16
+        $browseWidth = 96
+        $browseX = $pathPanel.ClientSize.Width - $innerMargin - $browseWidth
+        $pathLabel.Location = New-Object System.Drawing.Point($innerMargin, 14)
+        $pathText.Location = New-Object System.Drawing.Point($innerMargin, 44)
+        $pathText.Size = New-Object System.Drawing.Size([Math]::Max(260, $browseX - $innerMargin - 12), 28)
+        $browseButton.Location = New-Object System.Drawing.Point($browseX, 42)
+        $browseButton.Size = New-Object System.Drawing.Size($browseWidth, 32)
+
+        $scopeComboWidth = 160
+        $scopeLabelWidth = 64
+        $scopeComboX = $pathPanel.ClientSize.Width - $innerMargin - $scopeComboWidth
+        $scopeLabelX = $scopeComboX - $scopeLabelWidth - 8
+        $zipCheck.Location = New-Object System.Drawing.Point($innerMargin, 80)
+        $zipCheck.Size = New-Object System.Drawing.Size([Math]::Max(220, $scopeLabelX - $innerMargin - 16), 24)
+        $scopeLabel.Location = New-Object System.Drawing.Point($scopeLabelX, 82)
+        $scopeLabel.Size = New-Object System.Drawing.Size($scopeLabelWidth, 22)
+        $scopeCombo.Location = New-Object System.Drawing.Point($scopeComboX, 78)
+        $scopeCombo.Size = New-Object System.Drawing.Size($scopeComboWidth, 28)
+
+        $cancelButton.Size = New-Object System.Drawing.Size(88, 28)
+        $cancelButton.Location = New-Object System.Drawing.Point(($actionsPanel.ClientSize.Width - $innerMargin - $cancelButton.Width), 12)
+
+        $buttonY = 48
+        $buttonHeight = 42
+        $buttonGap = 10
+        $buttonX = $innerMargin
+        $actionButtons = @(
+            [pscustomobject]@{ Control = $backupButton; Width = 132 },
+            [pscustomobject]@{ Control = $restoreButton; Width = 132 },
+            [pscustomobject]@{ Control = $validateButton; Width = 116 },
+            [pscustomobject]@{ Control = $inspectButton; Width = 116 },
+            [pscustomobject]@{ Control = $elevateButton; Width = 96 },
+            [pscustomobject]@{ Control = $openButton; Width = 96 }
+        )
+        foreach ($item in $actionButtons) {
+            $item.Control.Location = New-Object System.Drawing.Point($buttonX, $buttonY)
+            $item.Control.Size = New-Object System.Drawing.Size($item.Width, $buttonHeight)
+            $buttonX += $item.Width + $buttonGap
+        }
+
+        $logTitle.Location = New-Object System.Drawing.Point(16, 12)
+        $script:GuiSummaryLabel.Location = New-Object System.Drawing.Point(150, 12)
+        $script:GuiSummaryLabel.Size = New-Object System.Drawing.Size([Math]::Max(260, $logPanel.ClientSize.Width - 170), 20)
+        $script:GuiLogBox.Location = New-Object System.Drawing.Point(16, 40)
+        $script:GuiLogBox.Size = New-Object System.Drawing.Size([Math]::Max(260, $logPanel.ClientSize.Width - 32), [Math]::Max(90, $logPanel.ClientSize.Height - 60))
+    }
+
+    $form.Add_Resize({
+        Update-DvResponsiveLayout
+    })
 
     $runAction = {
         param([scriptblock]$Action)
@@ -1680,6 +1786,7 @@ function Show-DriverVaultGui {
         }
     })
 
+    Update-DvResponsiveLayout
     Write-DriverVaultLog (T "Ready")
     [void]$form.ShowDialog()
 }

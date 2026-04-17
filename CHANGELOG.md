@@ -8,6 +8,13 @@ All notable changes to DriverVault will be documented in this file.
 - Added contribution and security guidance.
 - Documented command-line usage, backup modes, validation and restore workflow.
 
+## 0.1.1
+
+- Fixed responsive GUI layout for wide windows.
+- Aligned action buttons into one compact row.
+- Kept the Cancel button pinned to the top-right of the action area.
+- Prevented long status and option text from overflowing outside its controls.
+
 ## 0.1.0
 
 - Added Windows driver backup and restore GUI.
@@ -31,6 +38,13 @@ All notable changes to DriverVault will be documented in this file.
 - Добавлена подробная документация для GitHub на английском и русском языках.
 - Добавлены правила участия в разработке и заметки по безопасности.
 - Описаны командная строка, режимы сохранения, проверка и восстановление.
+
+## 0.1.1
+
+- Исправлена адаптивная раскладка интерфейса для широких окон.
+- Кнопки действий выровнены в одну компактную строку.
+- Кнопка **Отмена** закреплена справа сверху в блоке действий.
+- Длинные статусы и подписи больше не вылезают за границы элементов.
 
 ## 0.1.0
 
