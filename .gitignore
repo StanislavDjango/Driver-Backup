@@ -1,0 +1,26 @@
+# Generated builds
+dist/
+*.exe
+
+# DriverVault backup output
+DriverVault_*/
+DriverVault_*.zip
+*_DriverVault_Backup*/
+FAILED_DO_NOT_USE.txt
+
+# Logs and temporary files
+Logs/
+*.log
+*.tmp
+*.bak
+
+# Windows and editor noise
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
+
+# PowerShell local artifacts
+*.ps1xml
+*.pssc
+*.psrc
