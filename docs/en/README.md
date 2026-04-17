@@ -11,6 +11,7 @@ DriverVault uses built-in Windows tools instead of third-party driver packs. Tha
 - Recommended backup mode for normal third-party driver export.
 - Full backup mode that copies the DriverStore package folders directly.
 - SHA256 integrity file for later validation.
+- Dry-run restore mode that checks the backup and lists which INF packages would be added without installing drivers.
 - Machine manifest with manufacturer, model, OS and backup metadata.
 - Automatic Administrator restart for backup and restore actions.
 - Cancel button for long operations.
@@ -79,8 +80,9 @@ Do this before reinstalling Windows. A backup stored only on the system drive ca
 2. Copy the DriverVault backup folder back to the same computer.
 3. Open DriverVault as Administrator.
 4. Click **Validate** first.
-5. If validation passes, click **Restore**.
-6. Reboot Windows after restore.
+5. Click **Dry run** to see which INF packages would be sent to Windows without installing anything.
+6. If the dry run looks right, click **Restore**.
+7. Reboot Windows after restore.
 
 You can also use the generated `RESTORE_DRIVERS.cmd` inside the backup folder. Run it as Administrator.
 
@@ -95,6 +97,18 @@ The **Validate** action does not install drivers. It checks that:
 - SHA256 checksums match the files in the backup.
 
 If validation fails, do not restore from that backup until the problem is understood.
+
+## Dry Run Before Restore
+
+The **Dry run** action does not install drivers. It performs the restore pre-check and then creates a report in `Logs/` with:
+
+- whether INF files exist;
+- whether driver files can be read;
+- whether the saved machine information matches the current PC;
+- which INF packages would be sent to Windows by restore;
+- provider, class and DriverVer metadata when it can be read from the INF file.
+
+Use this before clicking **Restore** when you want confidence that the backup is complete and meant for this PC.
 
 ## What the Backup Contains
 
@@ -139,6 +153,12 @@ Validate an existing backup:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DriverVault.ps1 -Mode Validate -BackupPath "D:\DriverVault_Backup"
 ```
 
+Dry-run restore without installing drivers:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DriverVault.ps1 -Mode DryRun -BackupPath "D:\DriverVault_Backup"
+```
+
 Inspect backup details:
 
 ```powershell
@@ -155,7 +175,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DriverVault.ps1 -Mode 
 
 | Parameter | Values | Description |
 | --- | --- | --- |
-| `-Mode` | `Gui`, `Backup`, `Restore`, `Inspect`, `Validate` | Selects the operation. |
+| `-Mode` | `Gui`, `Backup`, `Restore`, `Inspect`, `Validate`, `DryRun` | Selects the operation. |
 | `-BackupPath` | Folder path | Backup folder to create, inspect, validate or restore from. |
 | `-BackupScope` | `Recommended`, `Full` | Backup mode. Used by `Backup`. |
 | `-CreateZip` | switch | Creates a ZIP archive after backup. |
@@ -180,7 +200,7 @@ The build script uses PS2EXE. If PS2EXE is missing, the script can install it fo
 
 ## Automated Releases
 
-GitHub Actions builds the EXE automatically on every push and pull request. When a version tag such as `v0.2.0` is pushed, the workflow also creates or updates a GitHub Release and uploads:
+GitHub Actions builds the EXE automatically on every push and pull request. When a version tag such as `v0.3.0` is pushed, the workflow also creates or updates a GitHub Release and uploads:
 
 - `DriverVault.exe`;
 - `DriverVault.exe.sha256`;

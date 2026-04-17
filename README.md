@@ -58,6 +58,7 @@ Useful project pages:
 - Backs up third-party Windows driver packages from the local driver store.
 - Restores saved `.inf` driver packages with built-in Windows tools.
 - Checks backup integrity with SHA256 checksums before restore.
+- Runs a dry-run restore check that lists which INF packages would be sent to Windows without installing anything.
 - Keeps a manifest with machine information, driver counts, backup mode and timestamps.
 - Supports Russian and English user interface text.
 - Provides a compact GUI with progress, cancellation, final status and detailed log files.
@@ -73,8 +74,9 @@ Useful project pages:
 5. Click **Backup**.
 6. Copy the created backup folder to a USB drive or another safe disk before reinstalling Windows.
 7. After reinstalling Windows, copy the backup folder back to the same PC.
-8. Run `RESTORE_DRIVERS.cmd` from the backup folder as Administrator, or open DriverVault and click **Restore**.
-9. Reboot Windows after restore.
+8. Click **Dry run** to see which driver packages would be sent to Windows without installing them.
+9. Run `RESTORE_DRIVERS.cmd` from the backup folder as Administrator, or open DriverVault and click **Restore**.
+10. Reboot Windows after restore.
 
 ### Русский
 
@@ -85,8 +87,9 @@ Useful project pages:
 5. Нажмите **Сохранить**.
 6. Перед переустановкой Windows перенесите созданную папку на флешку или другой надежный диск.
 7. После переустановки Windows верните папку резервной копии на этот же компьютер.
-8. Запустите `RESTORE_DRIVERS.cmd` из папки резервной копии от имени администратора или откройте DriverVault и нажмите **Восстановить**.
-9. После восстановления перезагрузите Windows.
+8. Нажмите **Пробное**, чтобы увидеть, какие пакеты драйверов будут отправлены Windows без установки.
+9. Запустите `RESTORE_DRIVERS.cmd` из папки резервной копии от имени администратора или откройте DriverVault и нажмите **Восстановить**.
+10. После восстановления перезагрузите Windows.
 
 ## Safety First
 
@@ -112,6 +115,7 @@ DriverVault не скачивает драйверы из интернета и 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DriverVault.ps1 -Mode Gui
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DriverVault.ps1 -Mode Backup -BackupPath "D:\DriverVault_Backup" -BackupScope Recommended
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DriverVault.ps1 -Mode Validate -BackupPath "D:\DriverVault_Backup"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DriverVault.ps1 -Mode DryRun -BackupPath "D:\DriverVault_Backup"
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DriverVault.ps1 -Mode Restore -BackupPath "D:\DriverVault_Backup"
 ```
 
@@ -123,7 +127,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Build-DriverVaultExe.p
 
 The build script uses PS2EXE and creates `dist\DriverVault.exe`. Generated binaries are not required for development; the `.ps1` and `.cmd` files are enough to run the tool.
 
-GitHub Actions also builds release binaries automatically whenever a version tag like `v0.2.0` is pushed.
+GitHub Actions also builds release binaries automatically whenever a version tag like `v0.3.0` is pushed.
 
 ## License
 

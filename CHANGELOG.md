@@ -8,6 +8,13 @@ All notable changes to DriverVault will be documented in this file.
 - Added contribution and security guidance.
 - Documented command-line usage, backup modes, validation and restore workflow.
 
+## 0.3.0
+
+- Added DryRun restore mode for checking backups without installing drivers.
+- Added GUI **Dry run** / **Пробное** action.
+- DryRun checks INF files, file readability, machine identity and driver candidates.
+- DryRun writes a detailed report to the backup `Logs/` folder.
+
 ## 0.2.0
 
 - Added a custom DriverVault icon and connected it to EXE builds.
@@ -45,6 +52,13 @@ All notable changes to DriverVault will be documented in this file.
 - Добавлена подробная документация для GitHub на английском и русском языках.
 - Добавлены правила участия в разработке и заметки по безопасности.
 - Описаны командная строка, режимы сохранения, проверка и восстановление.
+
+## 0.3.0
+
+- Добавлен режим пробного восстановления без установки драйверов.
+- Добавлена кнопка **Пробное** в графический интерфейс.
+- Пробный режим проверяет INF-файлы, чтение файлов, совпадение компьютера и кандидаты драйверов.
+- Пробный режим сохраняет подробный отчёт в папку `Logs/` резервной копии.
 
 ## 0.2.0
 

@@ -1,5 +1,5 @@
 ﻿param(
-    [ValidateSet("Gui", "Backup", "Restore", "Inspect", "Validate")]
+    [ValidateSet("Gui", "Backup", "Restore", "Inspect", "Validate", "DryRun")]
     [string]$Mode = "Gui",
 
     [string]$BackupPath = "",
@@ -54,6 +54,30 @@ $script:Strings = @{
         Created               = "Created: {0}"
         CreatingZip           = "Creating ZIP archive: {0}"
         DriversFolderMissing  = "Drivers folder was not found: {0}"
+        DryRunButton          = "Dry run"
+        DryRunCandidate       = "Would add: {0}"
+        DryRunCompleted       = "Dry-run restore completed. No drivers were installed."
+        DryRunFileReadableOk  = "File readability check passed: {0} files."
+        DryRunFileUnreadable  = "Unreadable file: {0}"
+        DryRunMachineMismatch = "possible different PC"
+        DryRunMachineSame     = "same PC"
+        DryRunMachineUnknown  = "unknown (manifest.json missing)"
+        DryRunMoreCandidates  = "Full candidate list is in the dry-run report. Showing first {0} of {1}."
+        DryRunReadFailed      = "Dry run failed: {0} files could not be read."
+        DryRunReportBackupRoot = "Backup root"
+        DryRunReportCandidates = "Driver packages that would be sent to Windows"
+        DryRunReportChecksumChecked = "Checksum checked"
+        DryRunReportClass     = "Class"
+        DryRunReportCreated   = "Dry-run report saved: {0}"
+        DryRunReportCreatedAt = "Created"
+        DryRunReportInfPackages = "INF packages"
+        DryRunReportMachineMismatches = "Machine mismatches"
+        DryRunReportMachineStatus = "Machine check"
+        DryRunReportProvider  = "Provider"
+        DryRunReportReadableFiles = "Readable files"
+        DryRunReportReadError = "Read error"
+        DryRunReportTitle     = "DriverVault dry-run restore report"
+        DryRunStart           = "Dry-run restore: checking backup without installing drivers."
         ExitCode              = "Exit code: {0}"
         ExportedInfCount      = "Exported INF files: {0}"
         ExportingDrivers      = "Exporting driver packages with pnputil. This can take a few minutes."
@@ -69,6 +93,7 @@ $script:Strings = @{
         LogTitle              = "Activity log"
         MachineLooksSame      = "Machine check: looks like the same PC."
         Machine               = "Machine: {0} {1}"
+        MachineCheckUnavailable = "Machine check: manifest.json is missing, cannot compare this PC."
         MachineMismatch       = "Machine identity mismatch: {0}"
         ManifestMissing       = "manifest.json was not found. Continuing with driver install."
         ManifestMissingShort  = "manifest.json was not found."
@@ -93,6 +118,7 @@ $script:Strings = @{
         DetailLogHint         = "System details are written to the log file."
         FinalBackupSummary    = "Backup ready: {0} INF, {1} files, {2} checksums."
         FinalRestoreSummary   = "Restore finished: {0} INF packages were sent to Windows."
+        FinalDryRunSummary    = "Dry run passed: {0} INF packages would be added. Report: {1}"
         FinalValidateSummary  = "Check passed: {0} INF, {1} checksums."
         FullModeStart         = "Full mode: copying the complete DriverStore."
         LastBackupNone        = "none"
@@ -103,6 +129,7 @@ $script:Strings = @{
         ProgressCopy          = "Copying packages: {0}/{1}"
         ProgressExport        = "Exported packages: {0}"
         ProgressInstall       = "Installing packages: {0}"
+        ProgressReadFiles     = "Reading files: {0}/{1}"
         SimpleCheckOk         = "Pre-check is OK. Continuing."
         StatusAdmin           = "Admin"
         StatusInf             = "INF"
@@ -142,6 +169,30 @@ $script:Strings = @{
         Created               = "Создано: {0}"
         CreatingZip           = "Создаю ZIP-архив: {0}"
         DriversFolderMissing  = "Папка Drivers не найдена: {0}"
+        DryRunButton          = "Пробное"
+        DryRunCandidate       = "Будет добавлен: {0}"
+        DryRunCompleted       = "Пробное восстановление завершено. Драйверы не устанавливались."
+        DryRunFileReadableOk  = "Проверка чтения файлов пройдена: {0} файлов."
+        DryRunFileUnreadable  = "Файл не читается: {0}"
+        DryRunMachineMismatch = "возможно другой ПК"
+        DryRunMachineSame     = "тот же ПК"
+        DryRunMachineUnknown  = "неизвестно (manifest.json отсутствует)"
+        DryRunMoreCandidates  = "Полный список кандидатов сохранён в отчёте. Показаны первые {0} из {1}."
+        DryRunReadFailed      = "Пробная проверка не пройдена: не читается файлов {0}."
+        DryRunReportBackupRoot = "Папка копии"
+        DryRunReportCandidates = "Пакеты драйверов, которые были бы отправлены Windows"
+        DryRunReportChecksumChecked = "Проверено SHA256"
+        DryRunReportClass     = "Класс"
+        DryRunReportCreated   = "Отчёт пробного восстановления сохранён: {0}"
+        DryRunReportCreatedAt = "Создано"
+        DryRunReportInfPackages = "INF-пакетов"
+        DryRunReportMachineMismatches = "Несовпадения компьютера"
+        DryRunReportMachineStatus = "Проверка компьютера"
+        DryRunReportProvider  = "Поставщик"
+        DryRunReportReadableFiles = "Файлов читается"
+        DryRunReportReadError = "Ошибка чтения"
+        DryRunReportTitle     = "Отчёт пробного восстановления DriverVault"
+        DryRunStart           = "Пробное восстановление: проверяю копию без установки драйверов."
         ExitCode              = "Код завершения: {0}"
         ExportedInfCount      = "Экспортировано INF-файлов: {0}"
         ExportingDrivers      = "Экспортирую драйверы через pnputil. Это может занять несколько минут."
@@ -157,6 +208,7 @@ $script:Strings = @{
         LogTitle              = "Журнал работы"
         MachineLooksSame      = "Проверка компьютера: похоже, это тот же ПК."
         Machine               = "Компьютер: {0} {1}"
+        MachineCheckUnavailable = "Проверка компьютера: manifest.json отсутствует, сравнить этот ПК нельзя."
         MachineMismatch       = "Резервная копия может быть от другого компьютера: {0}"
         ManifestMissing       = "manifest.json не найден. Продолжаю установку драйверов."
         ManifestMissingShort  = "manifest.json не найден."
@@ -181,6 +233,7 @@ $script:Strings = @{
         DetailLogHint         = "Системные подробности записываются в файл журнала."
         FinalBackupSummary    = "Копия готова: INF {0}, файлов {1}, SHA256 {2}."
         FinalRestoreSummary   = "Восстановление завершено: Windows получила {0} INF-пакетов."
+        FinalDryRunSummary    = "Пробная проверка пройдена: будет добавлено INF {0}. Отчёт: {1}"
         FinalValidateSummary  = "Проверка пройдена: INF {0}, SHA256 {1}."
         FullModeStart         = "Полный режим: копирую весь DriverStore."
         LastBackupNone        = "нет"
@@ -191,6 +244,7 @@ $script:Strings = @{
         ProgressCopy          = "Копирую пакеты: {0}/{1}"
         ProgressExport        = "Экспортировано пакетов: {0}"
         ProgressInstall       = "Установлено пакетов: {0}"
+        ProgressReadFiles     = "Читаю файлы: {0}/{1}"
         SimpleCheckOk         = "Предварительная проверка OK. Продолжаю."
         StatusAdmin           = "Админ"
         StatusInf             = "INF"
@@ -1089,6 +1143,7 @@ function Test-DriverBackup {
 
     $root = [IO.Path]::GetFullPath($Path)
     $driversDir = Join-Path $root "Drivers"
+    $manifestPath = Join-Path $root "manifest.json"
 
     if (-not (Test-Path -LiteralPath $driversDir)) {
         throw (T "DriversFolderMissing" $driversDir)
@@ -1102,14 +1157,24 @@ function Test-DriverBackup {
         throw (T "NoInfFound" $driversDir)
     }
 
-    $mismatches = @(Get-BackupMachineMismatches -Root $root)
-    if ($mismatches.Count -eq 0) {
-        Write-DriverVaultLog (T "MachineLooksSame") "OK"
+    $mismatches = @()
+    $machineStatus = "Unknown"
+    $manifestPresent = Test-Path -LiteralPath $manifestPath
+    if ($manifestPresent) {
+        $mismatches = @(Get-BackupMachineMismatches -Root $root)
+        if ($mismatches.Count -eq 0) {
+            $machineStatus = "Same"
+            Write-DriverVaultLog (T "MachineLooksSame") "OK"
+        }
+        else {
+            $machineStatus = "Mismatch"
+            foreach ($mismatch in $mismatches) {
+                Write-DriverVaultLog (T "MachineMismatch" $mismatch) "WARN"
+            }
+        }
     }
     else {
-        foreach ($mismatch in $mismatches) {
-            Write-DriverVaultLog (T "MachineMismatch" $mismatch) "WARN"
-        }
+        Write-DriverVaultLog (T "MachineCheckUnavailable") "WARN"
     }
 
     $checksumResult = Test-DriverChecksumFile -Root $root
@@ -1123,8 +1188,236 @@ function Test-DriverBackup {
         Root           = $root
         InfCount       = $infFiles.Count
         MismatchCount  = $mismatches.Count
+        Mismatches     = @($mismatches)
+        MachineStatus  = $machineStatus
+        MachineManifestPresent = $manifestPresent
         ChecksumResult = $checksumResult
         Message        = T "FinalValidateSummary" $infFiles.Count, $checksumResult.Checked
+    }
+}
+
+function Resolve-InfValue {
+    param(
+        [string]$Value,
+        [hashtable]$Strings
+    )
+
+    if ($null -eq $Value) {
+        return ""
+    }
+
+    $clean = $Value.Trim().Trim('"')
+    if ($clean -match '^%(?<name>[^%]+)%$') {
+        $key = $Matches.name
+        if ($Strings.ContainsKey($key)) {
+            return [string]$Strings[$key]
+        }
+    }
+
+    return $clean
+}
+
+function Get-DriverInfMetadata {
+    param(
+        [Parameter(Mandatory = $true)]
+        [IO.FileInfo]$InfFile,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Root,
+
+        [Parameter(Mandatory = $true)]
+        [string]$DriversDir
+    )
+
+    $version = @{}
+    $strings = @{}
+    $section = ""
+
+    try {
+        $content = Get-Content -LiteralPath $InfFile.FullName -Raw -ErrorAction Stop
+        foreach ($rawLine in ($content -split "\r?\n")) {
+            $line = ($rawLine -replace ';.*$', '').Trim()
+            if ([string]::IsNullOrWhiteSpace($line)) {
+                continue
+            }
+
+            if ($line -match '^\[(?<section>[^\]]+)\]$') {
+                $section = $Matches.section.Trim()
+                continue
+            }
+
+            if ($line -notmatch '^(?<key>[^=]+)=(?<value>.*)$') {
+                continue
+            }
+
+            $key = $Matches.key.Trim()
+            $value = $Matches.value.Trim().Trim('"')
+            if ($section -ieq "Version") {
+                $version[$key] = $value
+            }
+            elseif ($section -like "Strings*") {
+                $strings[$key] = $value
+            }
+        }
+
+        $provider = Resolve-InfValue -Value ([string]$version.Provider) -Strings $strings
+        $class = Resolve-InfValue -Value ([string]$version.Class) -Strings $strings
+        $driverVer = Resolve-InfValue -Value ([string]$version.DriverVer) -Strings $strings
+
+        return [pscustomobject]@{
+            RelativePath = Get-RelativePath -BasePath $Root -Path $InfFile.FullName
+            PackagePath  = Get-RelativePath -BasePath $DriversDir -Path $InfFile.DirectoryName
+            InfName      = $InfFile.Name
+            Provider     = $provider
+            Class        = $class
+            DriverVer    = $driverVer
+            CanRead      = $true
+            Error        = ""
+        }
+    }
+    catch {
+        return [pscustomobject]@{
+            RelativePath = Get-RelativePath -BasePath $Root -Path $InfFile.FullName
+            PackagePath  = Get-RelativePath -BasePath $DriversDir -Path $InfFile.DirectoryName
+            InfName      = $InfFile.Name
+            Provider     = ""
+            Class        = ""
+            DriverVer    = ""
+            CanRead      = $false
+            Error        = $_.Exception.Message
+        }
+    }
+}
+
+function Test-DriverBackupFileReadability {
+    param(
+        [string]$Root,
+        [string]$DriversDir
+    )
+
+    $files = @(Get-DriverBackupFiles -DriversDir $DriversDir)
+    $checked = 0
+    $failures = New-Object System.Collections.Generic.List[object]
+
+    foreach ($file in $files) {
+        Test-DriverVaultCancel
+        $checked++
+        if (($checked % 50) -eq 0 -or $checked -eq $files.Count) {
+            Set-DriverVaultProgress (T "ProgressReadFiles" $checked, $files.Count) $checked ([Math]::Max(1, $files.Count))
+        }
+
+        $stream = $null
+        try {
+            $stream = [IO.File]::Open($file.FullName, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::ReadWrite)
+            if ($stream.Length -gt 0) {
+                [void]$stream.ReadByte()
+            }
+        }
+        catch {
+            $relativePath = Get-RelativePath -BasePath $Root -Path $file.FullName
+            $failure = [pscustomobject]@{
+                RelativePath = $relativePath
+                Error        = $_.Exception.Message
+            }
+            [void]$failures.Add($failure)
+            Write-DriverVaultLog (T "DryRunFileUnreadable" $relativePath) "WARN"
+        }
+        finally {
+            if ($stream) {
+                $stream.Dispose()
+            }
+        }
+    }
+
+    if ($failures.Count -eq 0) {
+        Write-DriverVaultLog (T "DryRunFileReadableOk" $checked) "OK"
+    }
+
+    return [pscustomobject]@{
+        Checked  = $checked
+        Failures = @($failures.ToArray())
+        IsValid  = ($failures.Count -eq 0)
+    }
+}
+
+function Invoke-DriverRestoreDryRun {
+    param([string]$Path)
+
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+        throw (T "RestorePathRequired")
+    }
+
+    $root = [IO.Path]::GetFullPath($Path)
+    $driversDir = Join-Path $root "Drivers"
+    $logsDir = Join-Path $root "Logs"
+    New-Item -ItemType Directory -Path $logsDir -Force | Out-Null
+    $script:LogFile = Join-Path $logsDir ("dry-run_{0}.log" -f (Get-Date -Format "yyyyMMdd_HHmmss"))
+
+    Write-DriverVaultLog (T "DryRunStart")
+    $precheck = Test-DriverBackup -Path $root
+
+    $readability = Test-DriverBackupFileReadability -Root $root -DriversDir $driversDir
+    if (-not $readability.IsValid) {
+        throw (T "DryRunReadFailed" $readability.Failures.Count)
+    }
+
+    $infFiles = @(Get-ChildItem -LiteralPath $driversDir -Filter "*.inf" -Recurse -ErrorAction SilentlyContinue | Sort-Object FullName)
+    $candidates = @(foreach ($infFile in $infFiles) {
+        Get-DriverInfMetadata -InfFile $infFile -Root $root -DriversDir $driversDir
+    })
+
+    $previewLimit = 25
+    foreach ($candidate in ($candidates | Select-Object -First $previewLimit)) {
+        $parts = @($candidate.InfName)
+        if ($candidate.Provider) { $parts += $candidate.Provider }
+        if ($candidate.Class) { $parts += $candidate.Class }
+        if ($candidate.DriverVer) { $parts += $candidate.DriverVer }
+        Write-DriverVaultLog (T "DryRunCandidate" ($parts -join " | "))
+    }
+    if ($candidates.Count -gt $previewLimit) {
+        Write-DriverVaultLog (T "DryRunMoreCandidates" $previewLimit, $candidates.Count)
+    }
+
+    $machineStatusText = switch ($precheck.MachineStatus) {
+        "Same" { T "DryRunMachineSame" }
+        "Mismatch" { T "DryRunMachineMismatch" }
+        default { T "DryRunMachineUnknown" }
+    }
+
+    $reportPath = Join-Path $logsDir ("dry-run_report_{0}.txt" -f (Get-Date -Format "yyyyMMdd_HHmmss"))
+    $reportLines = New-Object System.Collections.Generic.List[string]
+    [void]$reportLines.Add((T "DryRunReportTitle"))
+    [void]$reportLines.Add(("{0}: {1}" -f (T "DryRunReportCreatedAt"), (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")))
+    [void]$reportLines.Add(("{0}: {1}" -f (T "DryRunReportBackupRoot"), $root))
+    [void]$reportLines.Add(("{0}: {1}" -f (T "DryRunReportInfPackages"), $candidates.Count))
+    [void]$reportLines.Add(("{0}: {1}" -f (T "DryRunReportReadableFiles"), $readability.Checked))
+    [void]$reportLines.Add(("{0}: {1}" -f (T "DryRunReportChecksumChecked"), $precheck.ChecksumResult.Checked))
+    [void]$reportLines.Add(("{0}: {1}" -f (T "DryRunReportMachineStatus"), $machineStatusText))
+    [void]$reportLines.Add(("{0}: {1}" -f (T "DryRunReportMachineMismatches"), $precheck.MismatchCount))
+    foreach ($mismatch in @($precheck.Mismatches)) {
+        [void]$reportLines.Add(("  - {0}" -f $mismatch))
+    }
+    [void]$reportLines.Add("")
+    [void]$reportLines.Add(("{0}:" -f (T "DryRunReportCandidates")))
+    foreach ($candidate in $candidates) {
+        [void]$reportLines.Add(("- {0}" -f $candidate.RelativePath))
+        if ($candidate.Provider) { [void]$reportLines.Add(("  {0}: {1}" -f (T "DryRunReportProvider"), $candidate.Provider)) }
+        if ($candidate.Class) { [void]$reportLines.Add(("  {0}: {1}" -f (T "DryRunReportClass"), $candidate.Class)) }
+        if ($candidate.DriverVer) { [void]$reportLines.Add(("  DriverVer: {0}" -f $candidate.DriverVer)) }
+        if (-not $candidate.CanRead) { [void]$reportLines.Add(("  {0}: {1}" -f (T "DryRunReportReadError"), $candidate.Error)) }
+    }
+    Set-Content -LiteralPath $reportPath -Encoding UTF8 -Value $reportLines
+
+    Write-DriverVaultLog (T "DryRunReportCreated" $reportPath) "OK"
+    Write-DriverVaultLog (T "DryRunCompleted") "OK"
+    return [pscustomobject]@{
+        Operation        = "DryRun"
+        Root             = $root
+        InfCount         = $candidates.Count
+        FileCount        = $readability.Checked
+        ReportPath       = $reportPath
+        CandidateDrivers = @($candidates)
+        Message          = T "FinalDryRunSummary" $candidates.Count, $reportPath
     }
 }
 
@@ -1551,10 +1844,13 @@ function Show-DriverVaultGui {
     $validateButton = New-DvButton -Text (T "CheckRestoreButton") -X 388 -Y 48 -Width 142 -Height 42
     $actionsPanel.Controls.Add($validateButton)
 
-    $inspectButton = New-DvButton -Text (T "InspectButton") -X 544 -Y 48 -Width 122 -Height 42
+    $dryRunButton = New-DvButton -Text (T "DryRunButton") -X 544 -Y 48 -Width 122 -Height 42
+    $actionsPanel.Controls.Add($dryRunButton)
+
+    $inspectButton = New-DvButton -Text (T "InspectButton") -X 680 -Y 48 -Width 122 -Height 42
     $actionsPanel.Controls.Add($inspectButton)
 
-    $elevateButton = New-DvButton -Text (T "RestartAsAdmin") -X 680 -Y 48 -Width 110 -Height 42 -BackColor $colors.Warning -ForeColor ([System.Drawing.Color]::FromArgb(24, 24, 24))
+    $elevateButton = New-DvButton -Text (T "RestartAsAdmin") -X 816 -Y 48 -Width 110 -Height 42 -BackColor $colors.Warning -ForeColor ([System.Drawing.Color]::FromArgb(24, 24, 24))
     $elevateButton.Enabled = -not (Test-IsAdministrator)
     $elevateButton.Add_Click({
         try {
@@ -1689,13 +1985,14 @@ function Show-DriverVaultGui {
         $buttonGap = 10
         $buttonX = $innerMargin
         $actionButtons = @(
-            [pscustomobject]@{ Control = $backupButton; Width = 132 },
-            [pscustomobject]@{ Control = $restoreButton; Width = 132 },
-            [pscustomobject]@{ Control = $validateButton; Width = 116 },
-            [pscustomobject]@{ Control = $inspectButton; Width = 116 },
-            [pscustomobject]@{ Control = $elevateButton; Width = 96 },
-            [pscustomobject]@{ Control = $openButton; Width = 96 },
-            [pscustomobject]@{ Control = $cancelButton; Width = 88 }
+            [pscustomobject]@{ Control = $backupButton; Width = 112 },
+            [pscustomobject]@{ Control = $restoreButton; Width = 118 },
+            [pscustomobject]@{ Control = $validateButton; Width = 96 },
+            [pscustomobject]@{ Control = $dryRunButton; Width = 106 },
+            [pscustomobject]@{ Control = $inspectButton; Width = 96 },
+            [pscustomobject]@{ Control = $elevateButton; Width = 82 },
+            [pscustomobject]@{ Control = $openButton; Width = 82 },
+            [pscustomobject]@{ Control = $cancelButton; Width = 78 }
         )
         foreach ($item in $actionButtons) {
             $item.Control.Location = New-Object System.Drawing.Point($buttonX, $buttonY)
@@ -1717,7 +2014,7 @@ function Show-DriverVaultGui {
     $runAction = {
         param([scriptblock]$Action)
 
-        $buttons = @($backupButton, $restoreButton, $validateButton, $inspectButton, $elevateButton, $openButton, $browseButton, $scopeCombo)
+        $buttons = @($backupButton, $restoreButton, $validateButton, $dryRunButton, $inspectButton, $elevateButton, $openButton, $browseButton, $scopeCombo)
         $script:CancelRequested = $false
         foreach ($button in $buttons) { $button.Enabled = $false }
         $cancelButton.Enabled = $true
@@ -1778,6 +2075,12 @@ function Show-DriverVaultGui {
         }
     })
 
+    $dryRunButton.Add_Click({
+        & $runAction {
+            Invoke-DriverRestoreDryRun -Path $pathText.Text
+        }
+    })
+
     $inspectButton.Add_Click({
         & $runAction {
             Inspect-DriverBackup -Path $pathText.Text
@@ -1805,6 +2108,9 @@ try {
         }
         "Validate" {
             Test-DriverBackup -Path $BackupPath | Out-Null
+        }
+        "DryRun" {
+            Invoke-DriverRestoreDryRun -Path $BackupPath | Out-Null
         }
     }
 }
