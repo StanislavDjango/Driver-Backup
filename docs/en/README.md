@@ -12,6 +12,7 @@ DriverVault uses built-in Windows tools instead of third-party driver packs. Tha
 - Full backup mode that copies the DriverStore package folders directly.
 - SHA256 integrity file for later validation.
 - Dry-run restore mode that checks the backup and lists which INF packages would be added without installing drivers.
+- Clear recovery errors for missing Administrator rights, busy files, damaged backup folders, missing INF files and wrong-PC backups.
 - Machine manifest with manufacturer, model, OS and backup metadata.
 - Automatic Administrator restart for backup and restore actions.
 - Cancel button for long operations.
@@ -200,7 +201,7 @@ The build script uses PS2EXE. If PS2EXE is missing, the script can install it fo
 
 ## Automated Releases
 
-GitHub Actions builds the EXE automatically on every push and pull request. When a version tag such as `v0.3.0` is pushed, the workflow also creates or updates a GitHub Release and uploads:
+GitHub Actions builds the EXE automatically on every push and pull request. When a version tag such as `v0.3.1` is pushed, the workflow also creates or updates a GitHub Release and uploads:
 
 - `DriverVault.exe`;
 - `DriverVault.exe.sha256`;
@@ -220,9 +221,21 @@ Some Windows installations only use in-box Microsoft drivers. Those drivers are 
 
 The backup may be damaged, partially copied or changed after creation. Copy the backup again from the original storage device or create a new backup.
 
+### Clear error messages
+
+DriverVault shows short recovery errors in the window and keeps technical details in the log file:
+
+| Message | What to do |
+| --- | --- |
+| No administrator rights | Restart DriverVault with **Run as administrator**. |
+| A file is busy | Close Explorer, installers, Device Manager or antivirus scanning the backup folder. |
+| Backup folder looks damaged | Copy the backup again or create a new one. |
+| No INF driver files were found | Choose the real DriverVault backup folder, or create a **Full** backup if needed. |
+| Backup was created for a different PC | Do not restore unless you intentionally know this hardware is compatible. |
+
 ### Machine identity mismatch
 
-DriverVault warns when the backup appears to come from another PC. It does not block restore, because advanced users may have a reason to continue, but the safest path is restoring on the same machine.
+DriverVault warns when the backup appears to come from another PC. The **Dry run** action still creates a report, but the real **Restore** action stops to protect the current Windows installation.
 
 ### Restore finished but a device still has no driver
 

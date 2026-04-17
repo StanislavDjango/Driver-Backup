@@ -8,6 +8,13 @@ All notable changes to DriverVault will be documented in this file.
 - Added contribution and security guidance.
 - Documented command-line usage, backup modes, validation and restore workflow.
 
+## 0.3.1
+
+- Added clearer user-facing recovery errors for Administrator rights, busy files, damaged backups, missing INF files and wrong-PC backups.
+- Kept technical error details in log files while showing short actionable messages in the GUI and CLI.
+- Restore now stops when the backup manifest clearly belongs to a different PC.
+- DryRun and Restore now validate the selected backup path before creating log folders.
+
 ## 0.3.0
 
 - Added DryRun restore mode for checking backups without installing drivers.
@@ -52,6 +59,13 @@ All notable changes to DriverVault will be documented in this file.
 - Добавлена подробная документация для GitHub на английском и русском языках.
 - Добавлены правила участия в разработке и заметки по безопасности.
 - Описаны командная строка, режимы сохранения, проверка и восстановление.
+
+## 0.3.1
+
+- Добавлены понятные ошибки для прав администратора, занятых файлов, повреждённых копий, отсутствующих INF-файлов и копий от другого ПК.
+- Технические подробности остаются в журнале, а в GUI и CLI показывается короткое действие для пользователя.
+- Восстановление теперь останавливается, если manifest явно показывает другой ПК.
+- DryRun и Restore сначала проверяют выбранную папку копии и не создают пустые папки при ошибочном пути.
 
 ## 0.3.0
 

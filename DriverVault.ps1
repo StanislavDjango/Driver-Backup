@@ -45,15 +45,15 @@ $script:Strings = @{
         BackupModeLabel       = "Mode:"
         BackupModeRecommended = "Recommended"
         BackupModeFull        = "Full"
-        BackupRequiresAdmin   = "Backup requires Administrator rights. Restart DriverVault as Administrator."
+        BackupRequiresAdmin   = "No administrator rights. Restart DriverVault as Administrator before backup."
         BackupRoot            = "Backup root: {0}"
         BrowseButton          = "Browse"
         BrowseDescription     = "Choose an existing backup folder or a parent folder for a new backup."
         CollectInventory      = "Collecting machine identity and installed driver inventory."
-        CommandFailed         = "Command failed with exit code {0}: {1}"
+        CommandFailed         = "{1} failed with exit code {0}. Check the log for technical details."
         Created               = "Created: {0}"
         CreatingZip           = "Creating ZIP archive: {0}"
-        DriversFolderMissing  = "Drivers folder was not found: {0}"
+        DriversFolderMissing  = "Backup folder looks damaged: Drivers folder is missing: {0}"
         DryRunButton          = "Dry run"
         DryRunCandidate       = "Would add: {0}"
         DryRunCompleted       = "Dry-run restore completed. No drivers were installed."
@@ -94,11 +94,12 @@ $script:Strings = @{
         MachineLooksSame      = "Machine check: looks like the same PC."
         Machine               = "Machine: {0} {1}"
         MachineCheckUnavailable = "Machine check: manifest.json is missing, cannot compare this PC."
-        MachineMismatch       = "Machine identity mismatch: {0}"
+        MachineMismatch       = "This backup may be for another PC: {0}"
+        MachineMismatchBlocked = "This backup was created for a different PC. Restore was stopped to protect this Windows installation."
         ManifestMissing       = "manifest.json was not found. Continuing with driver install."
         ManifestMissingShort  = "manifest.json was not found."
         NoInfExported         = "No INF files were exported. The system may only be using inbox Windows drivers."
-        NoInfFound            = "No INF files were found in: {0}"
+        NoInfFound            = "No INF driver files were found in this backup: {0}"
         OpenFolder            = "Open"
         OsLine                = "OS: {0} {1}"
         PressEnter            = "Press Enter to close"
@@ -106,11 +107,12 @@ $script:Strings = @{
         CheckRestoreButton    = "Check"
         ChecksumCreate        = "Creating SHA256 checksums for driver files."
         ChecksumCreated       = "Checksum file created: {0} files."
-        ChecksumMissingFile   = "Checksum warning: missing file {0}"
+        ChecksumMissingFile   = "Backup folder looks damaged: missing file {0}"
         ChecksumMismatch      = "Checksum warning: hash mismatch {0}"
+        ChecksumUnreadableFile = "Backup folder looks damaged: file cannot be read {0}"
         ChecksumOk            = "Checksum check passed: {0} files."
         ChecksumUnavailable   = "checksums.json was not found. Integrity check skipped."
-        ChecksumValidationFailed = "Checksum validation failed."
+        ChecksumValidationFailed = "Backup folder looks damaged: SHA256 check failed."
         ChecksumValidate      = "Checking driver file integrity."
         CleanupFailedBackup   = "Backup failed. Marking this folder as failed."
         CancelButton          = "Cancel"
@@ -125,6 +127,17 @@ $script:Strings = @{
         OpenAfterDone         = "Folder is ready: {0}"
         OperationCanceled     = "Operation canceled."
         OldFailedRemoved      = "Removed old failed backup: {0}"
+        ErrorAccessDenied     = "Windows denied access to a file or folder. Run as Administrator and make sure antivirus or another program is not blocking the backup."
+        ErrorAdminRequired    = "No administrator rights. Restart DriverVault as Administrator."
+        ErrorBackupDamaged    = "Backup folder looks damaged: {0}"
+        ErrorBackupMetadataDamaged = "Backup folder looks damaged: {0} cannot be read."
+        ErrorBackupPathMissing = "The selected backup path does not exist: {0}"
+        ErrorChecksumDamaged  = "Backup folder looks damaged: SHA256 check failed. Missing files: {0}; changed files: {1}; unreadable files: {2}."
+        ErrorCommandFailedFriendly = "{0} failed with exit code {1}. Check the log for technical details."
+        ErrorDriverInstallFailed = "Windows could not add the driver packages. The backup may contain an unsupported or damaged driver package. Check the log for details."
+        ErrorFileBusy         = "A file is busy. Close Explorer, installers, Device Manager or antivirus scanning this folder, then try again."
+        ErrorPathMissing      = "A needed file or folder was not found. Check that you selected the correct DriverVault backup folder."
+        ErrorUnexpected       = "Unexpected error: {0}"
         ProgressChecksum      = "SHA256: {0}/{1}"
         ProgressCopy          = "Copying packages: {0}/{1}"
         ProgressExport        = "Exported packages: {0}"
@@ -141,12 +154,13 @@ $script:Strings = @{
         RestoreConfirm        = "Restore drivers from this folder? Windows may need a reboot after this."
         RestoreCompleted      = "Restore completed. Reboot Windows to finish driver binding."
         RestorePathRequired   = "BackupPath is required for restore."
-        RestoreRequiresAdmin  = "Restore requires Administrator rights. Restart DriverVault as Administrator."
+        RestoreRequiresAdmin  = "No administrator rights. Restart DriverVault as Administrator before restore."
         RestoreRoot           = "Restore root: {0}"
         Running               = "Running: {0} {1}"
         SavingPnputil         = "Saving pnputil driver listing."
         ScriptPathUnknown     = "Cannot elevate because script path is unknown."
         Title                 = "DriverVault - backup and restore Windows drivers"
+        TechnicalDetails      = "Technical details: {0}"
         ZipCheck              = "Also create a ZIP archive after backup"
         ZipCreated            = "ZIP archive created."
     }
@@ -160,15 +174,15 @@ $script:Strings = @{
         BackupModeLabel       = "Режим:"
         BackupModeRecommended = "Рекомендуемый"
         BackupModeFull        = "Полная копия"
-        BackupRequiresAdmin   = "Для сохранения драйверов нужны права администратора. Перезапустите DriverVault от имени администратора."
+        BackupRequiresAdmin   = "Нет прав администратора. Перед сохранением запустите DriverVault от имени администратора."
         BackupRoot            = "Папка резервной копии: {0}"
         BrowseButton          = "Обзор"
         BrowseDescription     = "Выберите существующую папку резервной копии или папку для новой копии."
         CollectInventory      = "Собираю сведения о компьютере и список установленных драйверов."
-        CommandFailed         = "Команда завершилась с ошибкой {0}: {1}"
+        CommandFailed         = "{1} завершилась с ошибкой {0}. Технические подробности записаны в журнал."
         Created               = "Создано: {0}"
         CreatingZip           = "Создаю ZIP-архив: {0}"
-        DriversFolderMissing  = "Папка Drivers не найдена: {0}"
+        DriversFolderMissing  = "Папка резервной копии повреждена: не найдена папка Drivers: {0}"
         DryRunButton          = "Пробное"
         DryRunCandidate       = "Будет добавлен: {0}"
         DryRunCompleted       = "Пробное восстановление завершено. Драйверы не устанавливались."
@@ -209,11 +223,12 @@ $script:Strings = @{
         MachineLooksSame      = "Проверка компьютера: похоже, это тот же ПК."
         Machine               = "Компьютер: {0} {1}"
         MachineCheckUnavailable = "Проверка компьютера: manifest.json отсутствует, сравнить этот ПК нельзя."
-        MachineMismatch       = "Резервная копия может быть от другого компьютера: {0}"
+        MachineMismatch       = "Резервная копия может быть от другого ПК: {0}"
+        MachineMismatchBlocked = "Копия создана для другого ПК. Восстановление остановлено, чтобы не повредить эту Windows."
         ManifestMissing       = "manifest.json не найден. Продолжаю установку драйверов."
         ManifestMissingShort  = "manifest.json не найден."
         NoInfExported         = "INF-файлы не экспортированы. Возможно, система использует только встроенные драйверы Windows."
-        NoInfFound            = "INF-файлы не найдены в папке: {0}"
+        NoInfFound            = "В копии нет INF-файлов драйверов: {0}"
         OpenFolder            = "Открыть"
         OsLine                = "ОС: {0} {1}"
         PressEnter            = "Нажмите Enter, чтобы закрыть"
@@ -221,11 +236,12 @@ $script:Strings = @{
         CheckRestoreButton    = "Проверить"
         ChecksumCreate        = "Создаю SHA256-контрольные суммы файлов драйверов."
         ChecksumCreated       = "Файл контрольных сумм создан: {0} файлов."
-        ChecksumMissingFile   = "Предупреждение SHA256: отсутствует файл {0}"
+        ChecksumMissingFile   = "Папка резервной копии повреждена: отсутствует файл {0}"
         ChecksumMismatch      = "Предупреждение SHA256: хэш не совпадает {0}"
+        ChecksumUnreadableFile = "Папка резервной копии повреждена: файл не читается {0}"
         ChecksumOk            = "Проверка SHA256 пройдена: {0} файлов."
         ChecksumUnavailable   = "checksums.json не найден. Проверка целостности пропущена."
-        ChecksumValidationFailed = "Проверка SHA256 завершилась с ошибкой."
+        ChecksumValidationFailed = "Папка резервной копии повреждена: проверка SHA256 не прошла."
         ChecksumValidate      = "Проверяю целостность файлов драйверов."
         CleanupFailedBackup   = "Сохранение сорвалось. Помечаю эту папку как неудачную."
         CancelButton          = "Отмена"
@@ -240,6 +256,17 @@ $script:Strings = @{
         OpenAfterDone         = "Папка готова: {0}"
         OperationCanceled     = "Операция отменена."
         OldFailedRemoved      = "Удалена старая неудачная копия: {0}"
+        ErrorAccessDenied     = "Windows запретила доступ к файлу или папке. Запустите от имени администратора и проверьте, что антивирус или другая программа не блокирует копию."
+        ErrorAdminRequired    = "Нет прав администратора. Перезапустите DriverVault от имени администратора."
+        ErrorBackupDamaged    = "Папка резервной копии повреждена: {0}"
+        ErrorBackupMetadataDamaged = "Папка резервной копии повреждена: не читается {0}."
+        ErrorBackupPathMissing = "Выбранная папка резервной копии не существует: {0}"
+        ErrorChecksumDamaged  = "Папка резервной копии повреждена: проверка SHA256 не прошла. Отсутствует файлов: {0}; изменено файлов: {1}; не читается файлов: {2}."
+        ErrorCommandFailedFriendly = "{0} завершилась с ошибкой {1}. Технические подробности записаны в журнал."
+        ErrorDriverInstallFailed = "Windows не смогла добавить пакеты драйверов. Возможно, в копии есть неподдерживаемый или повреждённый пакет. Подробности записаны в журнал."
+        ErrorFileBusy         = "Файл занят. Закройте Проводник, установщики, Диспетчер устройств или проверку антивируса для этой папки и повторите."
+        ErrorPathMissing      = "Нужный файл или папка не найдены. Проверьте, что выбрана правильная папка резервной копии DriverVault."
+        ErrorUnexpected       = "Неожиданная ошибка: {0}"
         ProgressChecksum      = "SHA256: {0}/{1}"
         ProgressCopy          = "Копирую пакеты: {0}/{1}"
         ProgressExport        = "Экспортировано пакетов: {0}"
@@ -256,12 +283,13 @@ $script:Strings = @{
         RestoreConfirm        = "Восстановить драйверы из этой папки? После этого Windows может потребовать перезагрузку."
         RestoreCompleted      = "Восстановление завершено. Перезагрузите Windows, чтобы драйверы окончательно применились."
         RestorePathRequired   = "Для восстановления укажите BackupPath."
-        RestoreRequiresAdmin  = "Для восстановления нужны права администратора. Перезапустите DriverVault от имени администратора."
+        RestoreRequiresAdmin  = "Нет прав администратора. Перед восстановлением запустите DriverVault от имени администратора."
         RestoreRoot           = "Папка восстановления: {0}"
         Running               = "Запуск: {0} {1}"
         SavingPnputil         = "Сохраняю список драйверов pnputil."
         ScriptPathUnknown     = "Не удалось перезапуститься с правами администратора: неизвестен путь к скрипту."
         Title                 = "DriverVault - сохранение и восстановление драйверов Windows"
+        TechnicalDetails      = "Технические подробности: {0}"
         ZipCheck              = "Также создать ZIP-архив после сохранения"
         ZipCreated            = "ZIP-архив создан."
     }
@@ -476,6 +504,104 @@ function Write-DriverVaultLog {
     }
 }
 
+function Test-DriverVaultTextMatch {
+    param(
+        [string]$Text,
+        [string[]]$Patterns
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Text)) {
+        return $false
+    }
+
+    foreach ($pattern in $Patterns) {
+        if ($Text -match $pattern) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Get-FriendlyNativeCommandError {
+    param(
+        [string]$FilePath,
+        [int]$ExitCode,
+        [object[]]$Output,
+        [string]$FailureContext = "Command"
+    )
+
+    $toolName = Split-Path -Leaf $FilePath
+    $text = (@($Output) -join "`n")
+
+    if ($ExitCode -eq 740 -or (Test-DriverVaultTextMatch $text @("(?i)administrator", "(?i)elevat", "Запрошенная операция требует повышения", "администратор"))) {
+        return (T "ErrorAdminRequired")
+    }
+
+    if (Test-DriverVaultTextMatch $text @("(?i)being used by another process", "(?i)process cannot access", "(?i)sharing violation", "используется другим процессом", "занят", "0x80070020")) {
+        return (T "ErrorFileBusy")
+    }
+
+    if (Test-DriverVaultTextMatch $text @("(?i)access is denied", "(?i)access denied", "Отказано в доступе", "доступ запрещ")) {
+        return (T "ErrorAccessDenied")
+    }
+
+    if ($FailureContext -eq "RestoreInstall") {
+        return (T "ErrorDriverInstallFailed")
+    }
+
+    return (T "ErrorCommandFailedFriendly" $toolName, $ExitCode)
+}
+
+function Get-FriendlyExceptionMessage {
+    param([System.Management.Automation.ErrorRecord]$ErrorRecord)
+
+    $exception = $ErrorRecord.Exception
+    $message = [string]$exception.Message
+    if ([string]::IsNullOrWhiteSpace($message)) {
+        return (T "ErrorUnexpected" "")
+    }
+
+    if ($exception -is [System.Management.Automation.RuntimeException] -and $exception.WasThrownFromThrowStatement) {
+        return $message
+    }
+
+    if ($exception -is [UnauthorizedAccessException] -or [System.Security.SecurityException]::IsAssignableFrom($exception.GetType()) -or
+        (Test-DriverVaultTextMatch $message @("(?i)access is denied", "(?i)access denied", "Отказано в доступе", "доступ запрещ"))) {
+        return (T "ErrorAccessDenied")
+    }
+
+    if ($exception -is [IO.IOException] -and
+        (Test-DriverVaultTextMatch $message @("(?i)being used by another process", "(?i)process cannot access", "(?i)sharing violation", "используется другим процессом", "занят", "0x80070020"))) {
+        return (T "ErrorFileBusy")
+    }
+
+    if ($exception -is [IO.DirectoryNotFoundException] -or $exception -is [IO.FileNotFoundException] -or
+        (Test-DriverVaultTextMatch $message @("(?i)could not find", "(?i)cannot find", "не удается найти", "не найден"))) {
+        return (T "ErrorPathMissing")
+    }
+
+    if (Test-DriverVaultTextMatch $message @("(?i)ConvertFrom-Json", "(?i)invalid json", "(?i)unexpected character", "Недопустим", "не является допустимым JSON")) {
+        return (T "ErrorBackupDamaged" $message)
+    }
+
+    return $message
+}
+
+function Write-FriendlyCaughtError {
+    param([System.Management.Automation.ErrorRecord]$ErrorRecord)
+
+    $friendly = Get-FriendlyExceptionMessage -ErrorRecord $ErrorRecord
+    $raw = [string]$ErrorRecord.Exception.Message
+    Write-DriverVaultLog $friendly "ERROR"
+
+    if ($raw -and $raw -ne $friendly) {
+        Write-DriverVaultLog (T "TechnicalDetails" $raw) "WARN" -Detail
+    }
+
+    return $friendly
+}
+
 function Join-NativeArgumentList {
     param([string[]]$ArgumentList)
 
@@ -514,6 +640,8 @@ function Invoke-LoggedCommand {
 
         [ValidateSet("None", "Export", "Install")]
         [string]$ProgressKind = "None",
+
+        [string]$FailureContext = "Command",
 
         [switch]$ThrowOnError
     )
@@ -635,12 +763,13 @@ function Invoke-LoggedCommand {
     Write-DriverVaultLog (T "ExitCode" $exitCode)
 
     if ($ThrowOnError -and $exitCode -ne 0) {
-        throw (T "CommandFailed" $exitCode, $FilePath)
+        throw (Get-FriendlyNativeCommandError -FilePath $FilePath -ExitCode $exitCode -Output @($output) -FailureContext $FailureContext)
     }
 
     return [pscustomobject]@{
         ExitCode = $exitCode
         Output   = @($output)
+        Failure  = if ($exitCode -ne 0) { Get-FriendlyNativeCommandError -FilePath $FilePath -ExitCode $exitCode -Output @($output) -FailureContext $FailureContext } else { "" }
     }
 }
 
@@ -722,7 +851,7 @@ function Invoke-DriverExport {
     Write-DriverVaultLog (T "DriverStoreFallback") "WARN"
     $copied = Copy-DriverStoreFallback -DriversDir $DriversDir
     if ($copied -le 0) {
-        throw (T "CommandFailed" 1, "DriverStore copy fallback")
+        throw (T "ErrorCommandFailedFriendly" "DriverStore copy fallback", 1)
     }
 
     return [pscustomobject]@{
@@ -784,6 +913,17 @@ function Write-JsonFile {
     $InputObject | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $Path -Encoding UTF8
 }
 
+function Read-DriverVaultJsonFile {
+    param([string]$Path)
+
+    try {
+        return (Get-Content -LiteralPath $Path -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop)
+    }
+    catch {
+        throw (T "ErrorBackupMetadataDamaged" (Split-Path -Leaf $Path))
+    }
+}
+
 function Get-RelativePath {
     param(
         [string]$BasePath,
@@ -843,15 +983,16 @@ function Test-DriverChecksumFile {
     $checksumPath = Join-Path $Root "checksums.json"
     if (-not (Test-Path -LiteralPath $checksumPath)) {
         Write-DriverVaultLog (T "ChecksumUnavailable") "WARN"
-        return [pscustomobject]@{ Present = $false; Checked = 0; Missing = 0; Mismatch = 0; IsValid = $true }
+        return [pscustomobject]@{ Present = $false; Checked = 0; Missing = 0; Mismatch = 0; Unreadable = 0; IsValid = $true }
     }
 
     Write-DriverVaultLog (T "ChecksumValidate")
-    $entries = Get-Content -LiteralPath $checksumPath -Raw | ConvertFrom-Json
+    $entries = Read-DriverVaultJsonFile -Path $checksumPath
     $entries = @($entries)
     $checked = 0
     $missing = 0
     $mismatch = 0
+    $unreadable = 0
 
     foreach ($entry in $entries) {
         Test-DriverVaultCancel
@@ -866,23 +1007,31 @@ function Test-DriverChecksumFile {
         if (($checked % 50) -eq 0 -or $checked -eq $entries.Count) {
             Set-DriverVaultProgress (T "ProgressChecksum" $checked, $entries.Count) $checked ([Math]::Max(1, $entries.Count))
         }
-        $hash = Get-FileHash -LiteralPath $path -Algorithm SHA256
+        try {
+            $hash = Get-FileHash -LiteralPath $path -Algorithm SHA256 -ErrorAction Stop
+        }
+        catch {
+            $unreadable++
+            Write-DriverVaultLog (T "ChecksumUnreadableFile" $entry.RelativePath) "WARN"
+            continue
+        }
         if ($hash.Hash -ne $entry.SHA256) {
             $mismatch++
             Write-DriverVaultLog (T "ChecksumMismatch" $entry.RelativePath) "WARN"
         }
     }
 
-    if ($missing -eq 0 -and $mismatch -eq 0) {
+    if ($missing -eq 0 -and $mismatch -eq 0 -and $unreadable -eq 0) {
         Write-DriverVaultLog (T "ChecksumOk" $checked) "OK"
     }
 
     return [pscustomobject]@{
-        Present  = $true
-        Checked  = $checked
-        Missing  = $missing
-        Mismatch = $mismatch
-        IsValid  = ($missing -eq 0 -and $mismatch -eq 0)
+        Present    = $true
+        Checked    = $checked
+        Missing    = $missing
+        Mismatch   = $mismatch
+        Unreadable = $unreadable
+        IsValid    = ($missing -eq 0 -and $mismatch -eq 0 -and $unreadable -eq 0)
     }
 }
 
@@ -1126,7 +1275,11 @@ function Get-BackupMachineMismatches {
         return @()
     }
 
-    $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    $manifest = Read-DriverVaultJsonFile -Path $manifestPath
+    if (-not $manifest.Machine) {
+        throw (T "ErrorBackupMetadataDamaged" "manifest.json")
+    }
+
     $savedMachine = @{}
     foreach ($prop in $manifest.Machine.PSObject.Properties) {
         $savedMachine[$prop.Name] = $prop.Value
@@ -1135,7 +1288,10 @@ function Get-BackupMachineMismatches {
 }
 
 function Test-DriverBackup {
-    param([string]$Path)
+    param(
+        [string]$Path,
+        [switch]$StopOnMachineMismatch
+    )
 
     if ([string]::IsNullOrWhiteSpace($Path)) {
         throw (T "InspectPathRequired")
@@ -1144,6 +1300,10 @@ function Test-DriverBackup {
     $root = [IO.Path]::GetFullPath($Path)
     $driversDir = Join-Path $root "Drivers"
     $manifestPath = Join-Path $root "manifest.json"
+
+    if (-not (Test-Path -LiteralPath $root)) {
+        throw (T "ErrorBackupPathMissing" $root)
+    }
 
     if (-not (Test-Path -LiteralPath $driversDir)) {
         throw (T "DriversFolderMissing" $driversDir)
@@ -1171,6 +1331,9 @@ function Test-DriverBackup {
             foreach ($mismatch in $mismatches) {
                 Write-DriverVaultLog (T "MachineMismatch" $mismatch) "WARN"
             }
+            if ($StopOnMachineMismatch) {
+                throw (T "MachineMismatchBlocked")
+            }
         }
     }
     else {
@@ -1179,7 +1342,7 @@ function Test-DriverBackup {
 
     $checksumResult = Test-DriverChecksumFile -Root $root
     if (-not $checksumResult.IsValid) {
-        throw (T "ChecksumValidationFailed")
+        throw (T "ErrorChecksumDamaged" $checksumResult.Missing, $checksumResult.Mismatch, $checksumResult.Unreadable)
     }
 
     Write-DriverVaultLog (T "BackupLooksUsable") "OK"
@@ -1349,6 +1512,10 @@ function Invoke-DriverRestoreDryRun {
 
     $root = [IO.Path]::GetFullPath($Path)
     $driversDir = Join-Path $root "Drivers"
+    if (-not (Test-Path -LiteralPath $root)) {
+        throw (T "ErrorBackupPathMissing" $root)
+    }
+
     $logsDir = Join-Path $root "Logs"
     New-Item -ItemType Directory -Path $logsDir -Force | Out-Null
     $script:LogFile = Join-Path $logsDir ("dry-run_{0}.log" -f (Get-Date -Format "yyyyMMdd_HHmmss"))
@@ -1434,11 +1601,15 @@ function Import-DriverBackup {
 
     $root = [IO.Path]::GetFullPath($Path)
     $driversDir = Join-Path $root "Drivers"
+    if (-not (Test-Path -LiteralPath $root)) {
+        throw (T "ErrorBackupPathMissing" $root)
+    }
+
     $logsDir = Join-Path $root "Logs"
     New-Item -ItemType Directory -Path $logsDir -Force | Out-Null
     $script:LogFile = Join-Path $logsDir ("restore_{0}.log" -f (Get-Date -Format "yyyyMMdd_HHmmss"))
 
-    $precheck = Test-DriverBackup -Path $root
+    $precheck = Test-DriverBackup -Path $root -StopOnMachineMismatch
     Write-DriverVaultLog (T "SimpleCheckOk") "OK"
 
     Write-DriverVaultLog (T "InstallDrivers")
@@ -1447,7 +1618,7 @@ function Import-DriverBackup {
         (Join-Path $driversDir "*.inf"),
         "/subdirs",
         "/install"
-    ) -ProgressKind "Install" -ThrowOnError | Out-Null
+    ) -ProgressKind "Install" -FailureContext "RestoreInstall" -ThrowOnError | Out-Null
 
     Write-DriverVaultLog (T "RestoreCompleted") "OK"
     return [pscustomobject]@{
@@ -1474,7 +1645,7 @@ function Inspect-DriverBackup {
     Write-DriverVaultLog (T "InfFiles" $infFiles.Count)
 
     if (Test-Path -LiteralPath $manifestPath) {
-        $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+        $manifest = Read-DriverVaultJsonFile -Path $manifestPath
         Write-DriverVaultLog (T "Created" $manifest.CreatedAt)
         Write-DriverVaultLog (T "Machine" $manifest.Machine.Manufacturer, $manifest.Machine.Model)
         Write-DriverVaultLog (T "OsLine" $manifest.Machine.OSName, $manifest.Machine.OSVersion)
@@ -1858,7 +2029,7 @@ function Show-DriverVaultGui {
             $form.Close()
         }
         catch {
-            Write-DriverVaultLog $_.Exception.Message "ERROR"
+            [void](Write-FriendlyCaughtError $_)
         }
     })
     $actionsPanel.Controls.Add($elevateButton)
@@ -2029,10 +2200,10 @@ function Show-DriverVaultGui {
             Show-DriverVaultSummary $result
         }
         catch {
-            Write-DriverVaultLog $_.Exception.Message "ERROR"
-            $operationStatus = $_.Exception.Message
+            $friendlyError = Write-FriendlyCaughtError $_
+            $operationStatus = $friendlyError
             if ($script:GuiSummaryLabel) {
-                $script:GuiSummaryLabel.Text = $_.Exception.Message
+                $script:GuiSummaryLabel.Text = $friendlyError
                 $script:GuiSummaryLabel.ForeColor = $colors.Danger
             }
         }
@@ -2115,7 +2286,7 @@ try {
     }
 }
 catch {
-    Write-DriverVaultLog $_.Exception.Message "ERROR"
+    [void](Write-FriendlyCaughtError $_)
     if (-not $script:GuiMode -and -not $NoPause) {
         Write-Host ""
         Read-Host (T "PressEnter")
