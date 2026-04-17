@@ -36,6 +36,16 @@ DriverVault is not a driver updater. It does not search the internet, download n
 - Enough free disk space for the backup folder.
 - Optional internet access only if you want the build script to install PS2EXE for the current user.
 
+## Download for Non-Programmers
+
+If you do not want to work with source code, download the ready-to-run EXE from GitHub Releases:
+
+[Download DriverVault.exe](https://github.com/StanislavDjango/Driver-Backup/releases/latest/download/DriverVault.exe)
+
+Then right-click `DriverVault.exe` and choose **Run as administrator**.
+
+Windows may show a SmartScreen warning for new open-source EXE files that are not code-signed yet. This does not automatically mean the file is dangerous; it means Windows has not seen enough downloads from this publisher. If you are unsure, use the PowerShell source version from this repository or ask someone technical to review it.
+
 ## Backup Modes
 
 | Mode | What it does | When to use it |

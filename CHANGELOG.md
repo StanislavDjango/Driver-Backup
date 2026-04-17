@@ -18,6 +18,7 @@ All notable changes to DriverVault will be documented in this file.
 - Added restore pre-check before driver installation.
 - Added cancel button, progress status, final summaries and quiet error handling.
 - Added PS2EXE build script.
+- Published ready-to-run `DriverVault.exe` through GitHub Releases.
 
 ---
 
@@ -41,3 +42,4 @@ All notable changes to DriverVault will be documented in this file.
 - Добавлена предварительная проверка перед восстановлением.
 - Добавлены кнопка отмены, прогресс, итоговые статусы и тихая обработка ошибок.
 - Добавлен скрипт сборки через PS2EXE.
+- Готовый `DriverVault.exe` опубликован через GitHub Releases.

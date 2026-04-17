@@ -11,6 +11,20 @@ DriverVault - портативная утилита для Windows, котора
 | English | [Full English documentation](docs/en/README.md) |
 | Русский | [Полная документация на русском](docs/ru/README.md) |
 
+## Download Ready-To-Run EXE
+
+For most users, the easiest option is to download the ready-to-run Windows EXE:
+
+[Download DriverVault.exe](https://github.com/StanislavDjango/Driver-Backup/releases/latest/download/DriverVault.exe)
+
+Для большинства пользователей самый простой вариант - скачать готовый EXE-файл:
+
+[Скачать DriverVault.exe](https://github.com/StanislavDjango/Driver-Backup/releases/latest/download/DriverVault.exe)
+
+After download, right-click `DriverVault.exe` and choose **Run as administrator**.
+
+После загрузки нажмите правой кнопкой по `DriverVault.exe` и выберите **Запуск от имени администратора**.
+
 Useful project pages:
 
 - [Contributing guide](CONTRIBUTING.md)
