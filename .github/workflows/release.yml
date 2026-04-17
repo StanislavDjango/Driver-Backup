@@ -1,0 +1,116 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Windows EXE
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Derive build version
+        shell: pwsh
+        run: |
+          $refName = $env:GITHUB_REF_NAME
+          if ($env:GITHUB_REF_TYPE -eq "tag" -and $refName -match '^v(?<version>\d+\.\d+\.\d+)$') {
+            $version = "$($Matches.version).0"
+            $assetVersion = $refName
+          }
+          else {
+            $version = "0.0.0.$env:GITHUB_RUN_NUMBER"
+            $assetVersion = "ci-$env:GITHUB_RUN_NUMBER"
+          }
+
+          "DRIVERVAULT_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "DRIVERVAULT_ASSET_VERSION=$assetVersion" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Build version: $version"
+
+      - name: Install PS2EXE
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module ps2exe -Scope CurrentUser -Force -AllowClobber
+
+      - name: Build DriverVault.exe
+        shell: pwsh
+        run: |
+          .\Build-DriverVaultExe.ps1 -OutputPath .\dist\DriverVault.exe -Version $env:DRIVERVAULT_VERSION -SkipInstall
+
+      - name: Create release files
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash .\dist\DriverVault.exe -Algorithm SHA256).Hash
+          Set-Content -LiteralPath .\dist\DriverVault.exe.sha256 -Encoding ASCII -Value "$hash  DriverVault.exe"
+
+          $zipPath = ".\dist\DriverVault-$env:DRIVERVAULT_ASSET_VERSION.zip"
+          if (Test-Path -LiteralPath $zipPath) {
+            Remove-Item -LiteralPath $zipPath -Force
+          }
+          Compress-Archive -LiteralPath .\dist\DriverVault.exe, .\dist\DriverVault.exe.sha256, .\README.md, .\LICENSE -DestinationPath $zipPath
+
+          "DRIVERVAULT_SHA256=$hash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "SHA256: $hash"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DriverVault-${{ env.DRIVERVAULT_ASSET_VERSION }}
+          path: |
+            dist/DriverVault.exe
+            dist/DriverVault.exe.sha256
+            dist/DriverVault-${{ env.DRIVERVAULT_ASSET_VERSION }}.zip
+
+      - name: Publish GitHub Release
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          $notes = @"
+          # DriverVault $tag
+
+          Ready-to-run Windows EXE built automatically by GitHub Actions.
+
+          ## Download
+
+          - Download DriverVault.exe
+          - Right-click it and choose **Run as administrator**
+          - Use **Backup** before reinstalling Windows
+          - Use **Validate** and then **Restore** after reinstalling Windows
+
+          ## Скачать
+
+          - Скачайте DriverVault.exe
+          - Нажмите правой кнопкой и выберите **Запуск от имени администратора**
+          - Используйте **Сохранить** перед переустановкой Windows
+          - После переустановки нажмите **Проверить**, затем **Восстановить**
+
+          ## SHA256
+
+          SHA256 for DriverVault.exe: $env:DRIVERVAULT_SHA256
+          "@
+          Set-Content -LiteralPath release-notes.md -Encoding UTF8 -Value $notes
+
+          $zipPath = "dist/DriverVault-$env:DRIVERVAULT_ASSET_VERSION.zip"
+          if (gh release view $tag *> $null) {
+            gh release upload $tag dist/DriverVault.exe dist/DriverVault.exe.sha256 $zipPath --clobber
+          }
+          else {
+            gh release create $tag dist/DriverVault.exe dist/DriverVault.exe.sha256 $zipPath --title "DriverVault $tag" --notes-file release-notes.md --latest --verify-tag
+          }

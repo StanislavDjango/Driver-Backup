@@ -17,6 +17,10 @@ DriverVault uses built-in Windows tools instead of third-party driver packs. Tha
 - Simple on-screen log plus detailed logs in the backup folder.
 - No repeated confirmation popups during backup or restore.
 
+## Screenshot
+
+![DriverVault English interface](../assets/screenshots/drivervault-en.png)
+
 ## What DriverVault Is For
 
 Use DriverVault when:
@@ -173,6 +177,14 @@ dist\DriverVault.exe
 ```
 
 The build script uses PS2EXE. If PS2EXE is missing, the script can install it for the current user.
+
+## Automated Releases
+
+GitHub Actions builds the EXE automatically on every push and pull request. When a version tag such as `v0.2.0` is pushed, the workflow also creates or updates a GitHub Release and uploads:
+
+- `DriverVault.exe`;
+- `DriverVault.exe.sha256`;
+- `DriverVault-vX.Y.Z.zip`.
 
 ## Troubleshooting
 

@@ -8,6 +8,13 @@ All notable changes to DriverVault will be documented in this file.
 - Added contribution and security guidance.
 - Documented command-line usage, backup modes, validation and restore workflow.
 
+## 0.2.0
+
+- Added a custom DriverVault icon and connected it to EXE builds.
+- Added Russian and English screenshots to the GitHub documentation.
+- Added GitHub Actions workflow for automatic EXE builds and release publishing.
+- Added reproducible helper scripts for icon and screenshot generation.
+
 ## 0.1.1
 
 - Fixed responsive GUI layout for wide windows.
@@ -38,6 +45,13 @@ All notable changes to DriverVault will be documented in this file.
 - Добавлена подробная документация для GitHub на английском и русском языках.
 - Добавлены правила участия в разработке и заметки по безопасности.
 - Описаны командная строка, режимы сохранения, проверка и восстановление.
+
+## 0.2.0
+
+- Добавлена собственная иконка DriverVault и подключена к сборке EXE.
+- Добавлены русские и английские скриншоты в документацию GitHub.
+- Добавлен GitHub Actions workflow для автоматической сборки EXE и публикации релизов.
+- Добавлены воспроизводимые вспомогательные скрипты для генерации иконки и скриншотов.
 
 ## 0.1.1
 

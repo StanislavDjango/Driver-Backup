@@ -1,6 +1,7 @@
 param(
     [string]$OutputPath = "",
-    [string]$Version = "0.1.1.0",
+    [string]$Version = "0.2.0.0",
+    [string]$IconPath = "",
     [switch]$SkipInstall
 )
 
@@ -11,6 +12,10 @@ $distDir = Join-Path $root "dist"
 
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
     $OutputPath = Join-Path $distDir "DriverVault.exe"
+}
+
+if ([string]::IsNullOrWhiteSpace($IconPath)) {
+    $IconPath = Join-Path $root "assets\DriverVault.ico"
 }
 
 if (-not (Test-Path -LiteralPath $inputFile)) {
@@ -44,17 +49,28 @@ if (-not (Get-Command Invoke-PS2EXE -ErrorAction SilentlyContinue)) {
 }
 
 Write-Host "Building DriverVault EXE..."
-Invoke-PS2EXE `
-    -inputFile $inputFile `
-    -outputFile $OutputPath `
-    -noConsole `
-    -requireAdmin `
-    -DPIAware `
-    -title "DriverVault" `
-    -description "Backup and restore Windows drivers" `
-    -company "DriverVault" `
-    -product "DriverVault" `
-    -version $Version
+$ps2exeParams = @{
+    inputFile   = $inputFile
+    outputFile  = $OutputPath
+    noConsole   = $true
+    requireAdmin = $true
+    DPIAware    = $true
+    title       = "DriverVault"
+    description = "Backup and restore Windows drivers"
+    company     = "DriverVault"
+    product     = "DriverVault"
+    version     = $Version
+}
+
+if (Test-Path -LiteralPath $IconPath) {
+    $ps2exeParams.iconFile = $IconPath
+    Write-Host "Icon: $IconPath"
+}
+else {
+    Write-Host "Icon not found, building without custom icon: $IconPath"
+}
+
+Invoke-PS2EXE @ps2exeParams
 
 $item = Get-Item -LiteralPath $OutputPath
 Write-Host "Built: $($item.FullName)"

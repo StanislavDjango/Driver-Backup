@@ -1,5 +1,16 @@
 # DriverVault
 
+<p align="center">
+  <img src="assets/DriverVault.png" alt="DriverVault icon" width="96">
+</p>
+
+<p align="center">
+  <a href="https://github.com/StanislavDjango/Driver-Backup/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/StanislavDjango/Driver-Backup?label=latest"></a>
+  <img alt="Windows" src="https://img.shields.io/badge/platform-Windows-2478d4">
+  <img alt="PowerShell" src="https://img.shields.io/badge/PowerShell-5.1-5391FE">
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-green"></a>
+</p>
+
 DriverVault is a portable Windows utility for backing up the drivers already installed on a PC and restoring them after Windows is reinstalled.
 
 DriverVault - портативная утилита для Windows, которая сохраняет уже установленные драйверы этого компьютера и помогает восстановить их после переустановки Windows.
@@ -24,6 +35,16 @@ For most users, the easiest option is to download the ready-to-run Windows EXE:
 After download, right-click `DriverVault.exe` and choose **Run as administrator**.
 
 После загрузки нажмите правой кнопкой по `DriverVault.exe` и выберите **Запуск от имени администратора**.
+
+## Screenshots
+
+### Русский интерфейс
+
+![DriverVault Russian interface](docs/assets/screenshots/drivervault-ru.png)
+
+### English Interface
+
+![DriverVault English interface](docs/assets/screenshots/drivervault-en.png)
 
 Useful project pages:
 
@@ -101,6 +122,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Build-DriverVaultExe.p
 ```
 
 The build script uses PS2EXE and creates `dist\DriverVault.exe`. Generated binaries are not required for development; the `.ps1` and `.cmd` files are enough to run the tool.
+
+GitHub Actions also builds release binaries automatically whenever a version tag like `v0.2.0` is pushed.
 
 ## License
 
