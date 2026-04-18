@@ -8,6 +8,13 @@ All notable changes to DriverVault will be documented in this file.
 - Added contribution and security guidance.
 - Documented command-line usage, backup modes, validation and restore workflow.
 
+## 0.4.0
+
+- Added a dedicated GUI backup details window for the **Details** action.
+- Details now show creation date, PC model, Windows version, backup mode, INF count, file count, size, SHA256 status and current-PC match.
+- Details now save an `inspect_report_*.txt` report in the backup `Logs/` folder.
+- Added free-space checks before backup and before ZIP archive creation.
+
 ## 0.3.2
 
 - Redesigned the DriverVault icon around a shield, archive box and driver chip.
@@ -65,6 +72,13 @@ All notable changes to DriverVault will be documented in this file.
 - Добавлена подробная документация для GitHub на английском и русском языках.
 - Добавлены правила участия в разработке и заметки по безопасности.
 - Описаны командная строка, режимы сохранения, проверка и восстановление.
+
+## 0.4.0
+
+- Добавлено отдельное окно сведений о копии для кнопки **Сведения**.
+- В сведениях теперь видны дата создания, модель ПК, Windows, режим копии, INF, количество файлов, размер, SHA256 и совпадение с текущим ПК.
+- Сведения сохраняют отчёт `inspect_report_*.txt` в папку `Logs/` резервной копии.
+- Добавлена проверка свободного места перед сохранением и перед созданием ZIP-архива.
 
 ## 0.3.2
 
