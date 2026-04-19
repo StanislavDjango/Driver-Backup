@@ -40,6 +40,35 @@ jobs:
           "DRIVERVAULT_ASSET_VERSION=$assetVersion" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           Write-Host "Build version: $version"
 
+      - name: Check PowerShell syntax
+        shell: pwsh
+        run: |
+          $errors = @()
+          Get-ChildItem -Path . -Recurse -Filter *.ps1 | ForEach-Object {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$parseErrors) > $null
+            foreach ($parseError in @($parseErrors)) {
+              $errors += "{0}:{1}: {2}" -f $_.FullName, $parseError.Extent.StartLineNumber, $parseError.Message
+            }
+          }
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_ }
+            exit 1
+          }
+
+      - name: Install Pester
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module Pester -Scope CurrentUser -Force -SkipPublisherCheck -MinimumVersion 5.5.0
+
+      - name: Run Pester tests
+        shell: pwsh
+        run: |
+          Import-Module Pester -MinimumVersion 5.5.0 -Force
+          Invoke-Pester -Path .\tests -CI
+
       - name: Install PS2EXE
         shell: pwsh
         run: |

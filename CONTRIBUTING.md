@@ -21,6 +21,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DriverVault.ps1 -Mode 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Build-DriverVaultExe.ps1
 ```
 
+6. Run the automated Pester tests:
+
+```powershell
+Install-Module Pester -Scope CurrentUser -Force -SkipPublisherCheck -MinimumVersion 5.5.0
+Invoke-Pester -Path .\tests -CI
+```
+
 ### Code Style
 
 - Prefer built-in Windows tools and PowerShell APIs.
@@ -35,6 +42,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Build-DriverVaultExe.p
 Before opening a pull request, test what your change touches:
 
 ```powershell
+Invoke-Pester -Path .\tests -CI
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DriverVault.ps1 -Mode Inspect -BackupPath . -Language en -NoPause
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DriverVault.ps1 -Mode Inspect -BackupPath . -Language ru -NoPause
 ```

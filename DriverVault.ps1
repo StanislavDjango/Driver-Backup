@@ -12,7 +12,9 @@
     [ValidateSet("Recommended", "Full")]
     [string]$BackupScope = "Recommended",
 
-    [switch]$NoPause
+    [switch]$NoPause,
+
+    [switch]$ImportOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -1024,7 +1026,7 @@ function Format-DriverVaultByteSize {
     param([int64]$Bytes)
 
     $units = @("B", "KB", "MB", "GB", "TB")
-    $value = [double][Math]::Max(0, $Bytes)
+    $value = [Math]::Max([double]0, [double]$Bytes)
     $unitIndex = 0
     while ($value -ge 1024 -and $unitIndex -lt ($units.Count - 1)) {
         $value = $value / 1024
@@ -2707,6 +2709,10 @@ function Show-DriverVaultGui {
     Update-DvResponsiveLayout
     Write-DriverVaultLog (T "Ready")
     [void]$form.ShowDialog()
+}
+
+if ($ImportOnly) {
+    return
 }
 
 try {

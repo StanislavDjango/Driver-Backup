@@ -133,6 +133,17 @@ The build script uses PS2EXE and creates `dist\DriverVault.exe`. Generated binar
 
 GitHub Actions also builds release binaries automatically whenever a version tag like `v0.4.0` is pushed.
 
+## Run Tests
+
+DriverVault uses Pester tests for the core backup validation, inspect, dry-run, checksum and guard logic:
+
+```powershell
+Install-Module Pester -Scope CurrentUser -Force -SkipPublisherCheck -MinimumVersion 5.5.0
+Invoke-Pester -Path .\tests -CI
+```
+
+GitHub Actions runs the parser check and Pester tests before building the EXE.
+
 ## License
 
 DriverVault is released under the [MIT License](LICENSE).

@@ -13,6 +13,7 @@ Logs/
 *.log
 *.tmp
 *.bak
+testResults.xml
 
 # Windows and editor noise
 Thumbs.db
