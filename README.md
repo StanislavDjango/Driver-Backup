@@ -123,6 +123,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DriverVault.ps1 -Mode 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DriverVault.ps1 -Mode Restore -BackupPath "D:\DriverVault_Backup"
 ```
 
+Restore normally requires `manifest.json` so DriverVault can match the backup to this PC. Advanced users can add `-AllowUnknownMachine` for old backups that do not include a manifest.
+
 ## Build EXE
 
 ```powershell
@@ -138,7 +140,7 @@ GitHub Actions also builds release binaries automatically whenever a version tag
 DriverVault uses Pester tests for the core backup validation, inspect, dry-run, checksum and guard logic:
 
 ```powershell
-Install-Module Pester -Scope CurrentUser -Force -SkipPublisherCheck -MinimumVersion 5.5.0
+Install-Module Pester -Scope CurrentUser -Force -SkipPublisherCheck -RequiredVersion 5.7.1
 Invoke-Pester -Path .\tests -CI
 ```
 

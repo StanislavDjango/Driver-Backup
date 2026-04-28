@@ -61,19 +61,19 @@ jobs:
         shell: pwsh
         run: |
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-          Install-Module Pester -Scope CurrentUser -Force -SkipPublisherCheck -MinimumVersion 5.5.0
+          Install-Module Pester -Scope CurrentUser -Force -SkipPublisherCheck -RequiredVersion 5.7.1
 
       - name: Run Pester tests
         shell: pwsh
         run: |
-          Import-Module Pester -MinimumVersion 5.5.0 -Force
+          Import-Module Pester -RequiredVersion 5.7.1 -Force
           Invoke-Pester -Path .\tests -CI
 
       - name: Install PS2EXE
         shell: pwsh
         run: |
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-          Install-Module ps2exe -Scope CurrentUser -Force -AllowClobber
+          Install-Module ps2exe -Scope CurrentUser -Force -AllowClobber -RequiredVersion 1.0.17
 
       - name: Build DriverVault.exe
         shell: pwsh

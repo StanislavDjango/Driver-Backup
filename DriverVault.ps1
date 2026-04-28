@@ -14,7 +14,9 @@
 
     [switch]$NoPause,
 
-    [switch]$ImportOnly
+    [switch]$ImportOnly,
+
+    [switch]$AllowUnknownMachine
 )
 
 $ErrorActionPreference = "Stop"
@@ -49,6 +51,7 @@ $script:Strings = @{
         BackupModeFull        = "Full"
         BackupRequiresAdmin   = "No administrator rights. Restart DriverVault as Administrator before backup."
         BackupRoot            = "Backup root: {0}"
+        BackupSubfolderCreated = "Selected folder already contains files. New backup folder: {0}"
         BackupSize            = "Backup size: {0}"
         BrowseButton          = "Browse"
         BrowseDescription     = "Choose an existing backup folder or a parent folder for a new backup."
@@ -180,6 +183,7 @@ $script:Strings = @{
         RestoreButton         = "Restore"
         RestoreConfirm        = "Restore drivers from this folder? Windows may need a reboot after this."
         RestoreCompleted      = "Restore completed. Reboot Windows to finish driver binding."
+        RestoreManifestRequired = "manifest.json was not found. Restore was stopped because this backup cannot be matched to this PC."
         RestorePathRequired   = "BackupPath is required for restore."
         RestoreRequiresAdmin  = "No administrator rights. Restart DriverVault as Administrator before restore."
         RestoreRoot           = "Restore root: {0}"
@@ -204,6 +208,7 @@ $script:Strings = @{
         BackupModeFull        = "Полная копия"
         BackupRequiresAdmin   = "Нет прав администратора. Перед сохранением запустите DriverVault от имени администратора."
         BackupRoot            = "Папка резервной копии: {0}"
+        BackupSubfolderCreated = "В выбранной папке уже есть файлы. Новая папка копии: {0}"
         BackupSize            = "Размер копии: {0}"
         BrowseButton          = "Обзор"
         BrowseDescription     = "Выберите существующую папку резервной копии или папку для новой копии."
@@ -335,6 +340,7 @@ $script:Strings = @{
         RestoreButton         = "Восстановить"
         RestoreConfirm        = "Восстановить драйверы из этой папки? После этого Windows может потребовать перезагрузку."
         RestoreCompleted      = "Восстановление завершено. Перезагрузите Windows, чтобы драйверы окончательно применились."
+        RestoreManifestRequired = "manifest.json не найден. Восстановление остановлено: нельзя проверить, что копия подходит этому ПК."
         RestorePathRequired   = "Для восстановления укажите BackupPath."
         RestoreRequiresAdmin  = "Нет прав администратора. Перед восстановлением запустите DriverVault от имени администратора."
         RestoreRoot           = "Папка восстановления: {0}"
@@ -965,7 +971,7 @@ function Get-DriverInventory {
         Sort-Object DeviceName, InfName
 }
 
-function New-DefaultBackupPath {
+function New-DefaultBackupFolderName {
     $identity = Get-MachineIdentity
     $identityHash = @{}
     foreach ($key in $identity.Keys) {
@@ -973,7 +979,69 @@ function New-DefaultBackupPath {
     }
     $model = Get-BackupMachineName -Identity $identityHash
     $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
-    return Join-Path ([Environment]::GetFolderPath("Desktop")) ("DriverVault_{0}_{1}" -f $model, $stamp)
+    return "DriverVault_{0}_{1}" -f $model, $stamp
+}
+
+function New-DefaultBackupPath {
+    return Join-Path ([Environment]::GetFolderPath("Desktop")) (New-DefaultBackupFolderName)
+}
+
+function Test-DriverVaultBackupMarker {
+    param([string]$Path)
+
+    foreach ($name in @("manifest.json", "checksums.json", "machine.json", "installed-drivers.json", "RESTORE_DRIVERS.cmd", "FAILED_DO_NOT_USE.txt", "Drivers")) {
+        if (Test-Path -LiteralPath (Join-Path $Path $name)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function New-UniqueBackupPath {
+    param([string]$ParentPath)
+
+    for ($attempt = 0; $attempt -lt 100; $attempt++) {
+        $leaf = New-DefaultBackupFolderName
+        if ($attempt -gt 0) {
+            $leaf = "{0}_{1}" -f $leaf, $attempt
+        }
+
+        $candidate = Join-Path $ParentPath $leaf
+        if (-not (Test-Path -LiteralPath $candidate)) {
+            return $candidate
+        }
+
+        Start-Sleep -Milliseconds 20
+    }
+
+    throw (T "ErrorUnexpected" "Could not create a unique backup folder name.")
+}
+
+function Resolve-BackupDestinationPath {
+    param([string]$Path)
+
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+        return (New-DefaultBackupPath)
+    }
+
+    $root = [IO.Path]::GetFullPath($Path)
+    if (Test-Path -LiteralPath $root -PathType Leaf) {
+        throw (T "ErrorPathMissing")
+    }
+
+    if (Test-Path -LiteralPath $root -PathType Container) {
+        $looksLikeBackup = Test-DriverVaultBackupMarker -Path $root
+        $hasAnyFiles = $null -ne (Get-ChildItem -LiteralPath $root -Force -ErrorAction SilentlyContinue | Select-Object -First 1)
+        if ($looksLikeBackup -or $hasAnyFiles) {
+            $parent = if ($looksLikeBackup) { Split-Path -Parent $root } else { $root }
+            $newRoot = New-UniqueBackupPath -ParentPath $parent
+            Write-DriverVaultLog (T "BackupSubfolderCreated" $newRoot)
+            return $newRoot
+        }
+    }
+
+    return $root
 }
 
 function Write-JsonFile {
@@ -1337,11 +1405,7 @@ function Export-DriverBackup {
         throw (T "BackupRequiresAdmin")
     }
 
-    if ([string]::IsNullOrWhiteSpace($Path)) {
-        $Path = New-DefaultBackupPath
-    }
-
-    $root = [IO.Path]::GetFullPath($Path)
+    $root = Resolve-BackupDestinationPath -Path $Path
     $driversDir = Join-Path $root "Drivers"
     $logsDir = Join-Path $root "Logs"
 
@@ -1495,7 +1559,8 @@ function Get-BackupMachineMismatches {
 function Test-DriverBackup {
     param(
         [string]$Path,
-        [switch]$StopOnMachineMismatch
+        [switch]$StopOnMachineMismatch,
+        [switch]$RequireManifest
     )
 
     if ([string]::IsNullOrWhiteSpace($Path)) {
@@ -1543,6 +1608,9 @@ function Test-DriverBackup {
     }
     else {
         Write-DriverVaultLog (T "MachineCheckUnavailable") "WARN"
+        if ($RequireManifest) {
+            throw (T "RestoreManifestRequired")
+        }
     }
 
     $checksumResult = Test-DriverChecksumFile -Root $root
@@ -1794,7 +1862,10 @@ function Invoke-DriverRestoreDryRun {
 }
 
 function Import-DriverBackup {
-    param([string]$Path)
+    param(
+        [string]$Path,
+        [switch]$AllowUnknownMachine
+    )
 
     if (-not (Test-IsAdministrator)) {
         throw (T "RestoreRequiresAdmin")
@@ -1814,7 +1885,7 @@ function Import-DriverBackup {
     New-Item -ItemType Directory -Path $logsDir -Force | Out-Null
     $script:LogFile = Join-Path $logsDir ("restore_{0}.log" -f (Get-Date -Format "yyyyMMdd_HHmmss"))
 
-    $precheck = Test-DriverBackup -Path $root -StopOnMachineMismatch
+    $precheck = Test-DriverBackup -Path $root -StopOnMachineMismatch -RequireManifest:(-not $AllowUnknownMachine)
     Write-DriverVaultLog (T "SimpleCheckOk") "OK"
 
     Write-DriverVaultLog (T "InstallDrivers")
@@ -2724,7 +2795,7 @@ try {
             Export-DriverBackup -Path $BackupPath -Zip:$CreateZip -Scope $BackupScope | Out-Null
         }
         "Restore" {
-            Import-DriverBackup -Path $BackupPath
+            Import-DriverBackup -Path $BackupPath -AllowUnknownMachine:$AllowUnknownMachine
         }
         "Inspect" {
             Inspect-DriverBackup -Path $BackupPath | Out-Null

@@ -176,6 +176,15 @@ Describe "DriverVault backup and restore guards" {
 
         { Import-DriverBackup -Path (Get-TestRootPath -Name "restore_backup") } | Should -Throw -ExpectedMessage "*administrator*"
     }
+
+    It "stops restore when manifest.json is missing" {
+        $backup = New-TestDriverBackup -SkipManifest
+        Mock Test-IsAdministrator { return $true }
+        Mock Invoke-LoggedCommand { throw "Install should not run without manifest.json" }
+
+        { Import-DriverBackup -Path $backup.Root } | Should -Throw -ExpectedMessage "*manifest.json*"
+        Assert-MockCalled Invoke-LoggedCommand -Times 0 -Exactly
+    }
 }
 
 Describe "DriverVault utility helpers" {
@@ -195,5 +204,30 @@ Describe "DriverVault utility helpers" {
         New-Item -ItemType Directory -Path $path -Force | Out-Null
 
         { Test-RequiredFreeSpace -Path $path -RequiredBytes ([int64]::MaxValue) } | Should -Throw -ExpectedMessage "*free space*"
+    }
+
+    It "creates a sibling folder when an existing backup folder is selected for backup" {
+        $parent = Get-TestRootPath -Name "backup_parent"
+        $existing = Join-Path $parent "DriverVault_existing"
+        New-Item -ItemType Directory -Path $existing -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $existing "manifest.json") -Encoding ASCII -Value "{}"
+
+        $resolved = Resolve-BackupDestinationPath -Path $existing
+
+        $resolved | Should -Not -Be $existing
+        (Split-Path -Parent $resolved) | Should -Be $parent
+        (Split-Path -Leaf $resolved) | Should -Match "^DriverVault_"
+    }
+
+    It "creates a child folder when a non-empty parent folder is selected for backup" {
+        $parent = Get-TestRootPath -Name "non_empty_parent"
+        New-Item -ItemType Directory -Path $parent -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $parent "note.txt") -Encoding ASCII -Value "keep"
+
+        $resolved = Resolve-BackupDestinationPath -Path $parent
+
+        $resolved | Should -Not -Be $parent
+        (Split-Path -Parent $resolved) | Should -Be $parent
+        (Split-Path -Leaf $resolved) | Should -Match "^DriverVault_"
     }
 }
