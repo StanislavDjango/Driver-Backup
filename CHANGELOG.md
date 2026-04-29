@@ -4,9 +4,18 @@ All notable changes to DriverVault will be documented in this file.
 
 ## Unreleased
 
+- No unreleased changes yet.
+
+## 0.4.1
+
 - Added full English and Russian documentation for GitHub.
 - Added contribution and security guidance.
 - Documented command-line usage, backup modes, validation and restore workflow.
+- Added structured DriverVault error codes for clearer diagnostics.
+- Added backup history in the GUI for quickly selecting previous backups.
+- Added a backup completion window with INF, file, SHA256, size, mode and export method details.
+- Added more Pester coverage for damaged manifests, missing Drivers folders, corrupted checksums, changed files, wrong-PC restores and invalid backup destinations.
+- Updated the application and EXE build version to 0.4.1.
 
 ## 0.4.0
 

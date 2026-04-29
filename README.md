@@ -133,7 +133,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Build-DriverVaultExe.p
 
 The build script uses PS2EXE and creates `dist\DriverVault.exe`. Generated binaries are not required for development; the `.ps1` and `.cmd` files are enough to run the tool.
 
-GitHub Actions also builds release binaries automatically whenever a version tag like `v0.4.0` is pushed.
+GitHub Actions also builds release binaries automatically whenever a version tag like `v0.4.1` is pushed.
 
 ## Run Tests
 

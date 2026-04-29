@@ -21,6 +21,7 @@
 
 $ErrorActionPreference = "Stop"
 $script:AppName = "DriverVault"
+$script:AppVersion = "0.4.1"
 $script:LogFile = $null
 $script:GuiLogBox = $null
 $script:GuiMode = ($Mode -eq "Gui")
@@ -1670,7 +1671,7 @@ function Export-DriverBackup {
         $checksums = @(New-DriverChecksumFile -Root $root -DriversDir $driversDir)
         $manifest = [ordered]@{
             ToolName             = $script:AppName
-            ToolVersion          = "1.1"
+            ToolVersion          = $script:AppVersion
             Language             = $script:UiLanguage
             CreatedAt            = (Get-Date).ToString("o")
             BackupRoot           = $root

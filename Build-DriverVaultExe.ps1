@@ -1,6 +1,6 @@
 param(
     [string]$OutputPath = "",
-    [string]$Version = "0.4.0.0",
+    [string]$Version = "0.4.1.0",
     [string]$IconPath = "",
     [switch]$SkipInstall
 )

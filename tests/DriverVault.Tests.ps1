@@ -44,7 +44,7 @@ BeforeAll {
         if (-not $SkipManifest) {
             $manifest = [ordered]@{
                 ToolName          = "DriverVault"
-                ToolVersion       = "1.1"
+                ToolVersion       = "0.4.1"
                 Language          = "en"
                 CreatedAt         = (Get-Date).ToString("o")
                 BackupRoot        = $root
@@ -71,6 +71,34 @@ BeforeAll {
             InfPath    = $infPath
             DriverFile = $driverFile
         }
+    }
+
+    function Assert-DriverVaultErrorCode {
+        param(
+            [scriptblock]$ScriptBlock,
+            [string]$ExpectedCode
+        )
+
+        try {
+            & $ScriptBlock
+            throw "Expected DriverVault error code $ExpectedCode."
+        }
+        catch {
+            Get-DriverVaultErrorCode -ErrorRecord $_ | Should -Be $ExpectedCode
+        }
+    }
+
+    function Set-TestManifestMachineValue {
+        param(
+            [string]$Root,
+            [string]$Name,
+            [string]$Value
+        )
+
+        $manifestPath = Join-Path $Root "manifest.json"
+        $manifest = Read-DriverVaultJsonFile -Path $manifestPath
+        $manifest.Machine.$Name = $Value
+        Write-JsonFile -InputObject $manifest -Path $manifestPath
     }
 }
 
@@ -105,11 +133,37 @@ Describe "DriverVault core validation" {
         { Test-DriverBackup -Path $backup.Root } | Should -Throw -ExpectedMessage "*No INF driver files*"
     }
 
+    It "uses NO_INF code when a backup has no INF files" {
+        $backup = New-TestDriverBackup -NoInf -SkipChecksums
+
+        Assert-DriverVaultErrorCode -ExpectedCode "NO_INF" -ScriptBlock {
+            Test-DriverBackup -Path $backup.Root
+        }
+    }
+
+    It "rejects a backup when the Drivers folder is missing" {
+        $backup = New-TestDriverBackup
+        Remove-Item -LiteralPath $backup.DriversDir -Recurse -Force
+
+        Assert-DriverVaultErrorCode -ExpectedCode "DRIVERS_FOLDER_MISSING" -ScriptBlock {
+            Test-DriverBackup -Path $backup.Root
+        }
+    }
+
     It "rejects damaged manifest JSON" {
         $backup = New-TestDriverBackup -SkipManifest
         Set-Content -LiteralPath (Join-Path $backup.Root "manifest.json") -Encoding ASCII -Value "{ damaged json"
 
         { Test-DriverBackup -Path $backup.Root } | Should -Throw -ExpectedMessage "*manifest.json*"
+    }
+
+    It "uses METADATA_DAMAGED code for corrupted manifest JSON" {
+        $backup = New-TestDriverBackup -SkipManifest
+        Set-Content -LiteralPath (Join-Path $backup.Root "manifest.json") -Encoding ASCII -Value "{ damaged json"
+
+        Assert-DriverVaultErrorCode -ExpectedCode "METADATA_DAMAGED" -ScriptBlock {
+            Test-DriverBackup -Path $backup.Root
+        }
     }
 
     It "detects missing driver files through SHA256 validation" {
@@ -121,6 +175,35 @@ Describe "DriverVault core validation" {
         $checksum.Present | Should -BeTrue
         $checksum.IsValid | Should -BeFalse
         $checksum.Missing | Should -Be 1
+    }
+
+    It "detects changed driver files through SHA256 validation" {
+        $backup = New-TestDriverBackup
+        "tampered driver bytes" | Set-Content -LiteralPath $backup.DriverFile -Encoding ASCII
+
+        $checksum = Test-DriverChecksumFile -Root $backup.Root
+
+        $checksum.Present | Should -BeTrue
+        $checksum.IsValid | Should -BeFalse
+        $checksum.Mismatch | Should -Be 1
+    }
+
+    It "uses CHECKSUM_DAMAGED code when validation sees changed files" {
+        $backup = New-TestDriverBackup
+        "tampered driver bytes" | Set-Content -LiteralPath $backup.DriverFile -Encoding ASCII
+
+        Assert-DriverVaultErrorCode -ExpectedCode "CHECKSUM_DAMAGED" -ScriptBlock {
+            Test-DriverBackup -Path $backup.Root
+        }
+    }
+
+    It "uses METADATA_DAMAGED code for corrupted checksums JSON" {
+        $backup = New-TestDriverBackup
+        Set-Content -LiteralPath (Join-Path $backup.Root "checksums.json") -Encoding ASCII -Value "{ broken checksums"
+
+        Assert-DriverVaultErrorCode -ExpectedCode "METADATA_DAMAGED" -ScriptBlock {
+            Test-DriverBackup -Path $backup.Root
+        }
     }
 }
 
@@ -190,13 +273,21 @@ Describe "DriverVault backup and restore guards" {
         $backup = New-TestDriverBackup -SkipManifest
         Mock Test-IsAdministrator { return $true }
 
-        try {
+        Assert-DriverVaultErrorCode -ExpectedCode "MANIFEST_REQUIRED" -ScriptBlock {
             Import-DriverBackup -Path $backup.Root
-            throw "Restore should have failed without manifest.json"
         }
-        catch {
-            Get-DriverVaultErrorCode -ErrorRecord $_ | Should -Be "MANIFEST_REQUIRED"
+    }
+
+    It "stops restore for a backup from another PC before installing drivers" {
+        $backup = New-TestDriverBackup
+        Set-TestManifestMachineValue -Root $backup.Root -Name "Model" -Value "Definitely Another PC Model"
+        Mock Test-IsAdministrator { return $true }
+        Mock Invoke-LoggedCommand { throw "Install should not run for a different PC" }
+
+        Assert-DriverVaultErrorCode -ExpectedCode "WRONG_PC" -ScriptBlock {
+            Import-DriverBackup -Path $backup.Root
         }
+        Assert-MockCalled Invoke-LoggedCommand -Times 0 -Exactly
     }
 }
 
@@ -213,11 +304,17 @@ Describe "DriverVault utility helpers" {
     }
 
     It "keeps structured error codes on DriverVault exceptions" {
-        try {
+        Assert-DriverVaultErrorCode -ExpectedCode "NO_INF" -ScriptBlock {
             throw (New-DriverVaultError -Code "NO_INF" -Message "No INF")
         }
-        catch {
-            Get-DriverVaultErrorCode -ErrorRecord $_ | Should -Be "NO_INF"
+    }
+
+    It "rejects a file path when choosing a backup destination" {
+        $filePath = Get-TestRootPath -Name "not_a_backup_folder.txt"
+        Set-Content -LiteralPath $filePath -Encoding ASCII -Value "not a folder"
+
+        Assert-DriverVaultErrorCode -ExpectedCode "PATH_MISSING" -ScriptBlock {
+            Resolve-BackupDestinationPath -Path $filePath
         }
     }
 
