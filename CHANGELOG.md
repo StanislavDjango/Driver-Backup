@@ -6,6 +6,14 @@ All notable changes to DriverVault will be documented in this file.
 
 - No unreleased changes yet.
 
+## 0.4.2
+
+- Added a normal Windows installer: `DriverVaultSetup.exe`.
+- Installer copies DriverVault to Program Files, adds Start Menu and optional Desktop shortcuts, and supports standard uninstall.
+- GitHub Releases now publish both the installer and the portable EXE.
+- Fixed Russian text in automatically generated release notes.
+- Updated the application and EXE build version to 0.4.2.
+
 ## 0.4.1
 
 - Added full English and Russian documentation for GitHub.

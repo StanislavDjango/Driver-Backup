@@ -21,7 +21,7 @@
 
 $ErrorActionPreference = "Stop"
 $script:AppName = "DriverVault"
-$script:AppVersion = "0.4.1"
+$script:AppVersion = "0.4.2"
 $script:LogFile = $null
 $script:GuiLogBox = $null
 $script:GuiMode = ($Mode -eq "Gui")

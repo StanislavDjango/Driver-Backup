@@ -38,6 +38,7 @@ jobs:
 
           "DRIVERVAULT_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "DRIVERVAULT_ASSET_VERSION=$assetVersion" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "DRIVERVAULT_SEMVER=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           Write-Host "Build version: $version"
 
       - name: Check PowerShell syntax
@@ -75,31 +76,47 @@ jobs:
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
           Install-Module ps2exe -Scope CurrentUser -Force -AllowClobber -RequiredVersion 1.0.17
 
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress -y
+
       - name: Build DriverVault.exe
         shell: pwsh
         run: |
           .\Build-DriverVaultExe.ps1 -OutputPath .\dist\DriverVault.exe -Version $env:DRIVERVAULT_VERSION -SkipInstall
 
+      - name: Build DriverVaultSetup.exe
+        shell: pwsh
+        run: |
+          .\Build-DriverVaultInstaller.ps1 -Version $env:DRIVERVAULT_SEMVER
+
       - name: Create release files
         shell: pwsh
         run: |
-          $hash = (Get-FileHash .\dist\DriverVault.exe -Algorithm SHA256).Hash
-          Set-Content -LiteralPath .\dist\DriverVault.exe.sha256 -Encoding ASCII -Value "$hash  DriverVault.exe"
+          $portableHash = (Get-FileHash .\dist\DriverVault.exe -Algorithm SHA256).Hash
+          $setupHash = (Get-FileHash .\dist\DriverVaultSetup.exe -Algorithm SHA256).Hash
+          Set-Content -LiteralPath .\dist\DriverVault.exe.sha256 -Encoding ASCII -Value "$portableHash  DriverVault.exe"
+          Set-Content -LiteralPath .\dist\DriverVaultSetup.exe.sha256 -Encoding ASCII -Value "$setupHash  DriverVaultSetup.exe"
 
           $zipPath = ".\dist\DriverVault-$env:DRIVERVAULT_ASSET_VERSION.zip"
           if (Test-Path -LiteralPath $zipPath) {
             Remove-Item -LiteralPath $zipPath -Force
           }
-          Compress-Archive -LiteralPath .\dist\DriverVault.exe, .\dist\DriverVault.exe.sha256, .\README.md, .\LICENSE -DestinationPath $zipPath
+          Compress-Archive -LiteralPath .\dist\DriverVaultSetup.exe, .\dist\DriverVaultSetup.exe.sha256, .\dist\DriverVault.exe, .\dist\DriverVault.exe.sha256, .\README.md, .\LICENSE -DestinationPath $zipPath
 
-          "DRIVERVAULT_SHA256=$hash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          Write-Host "SHA256: $hash"
+          "DRIVERVAULT_SHA256=$portableHash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "DRIVERVAULT_SETUP_SHA256=$setupHash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Portable SHA256: $portableHash"
+          Write-Host "Installer SHA256: $setupHash"
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
           name: DriverVault-${{ env.DRIVERVAULT_ASSET_VERSION }}
           path: |
+            dist/DriverVaultSetup.exe
+            dist/DriverVaultSetup.exe.sha256
             dist/DriverVault.exe
             dist/DriverVault.exe.sha256
             dist/DriverVault-${{ env.DRIVERVAULT_ASSET_VERSION }}.zip
@@ -114,32 +131,46 @@ jobs:
           $notes = @"
           # DriverVault $tag
 
-          Ready-to-run Windows EXE built automatically by GitHub Actions.
+          Ready-to-run Windows builds created automatically by GitHub Actions.
 
-          ## Download
+          ## Recommended Download
 
-          - Download DriverVault.exe
-          - Right-click it and choose **Run as administrator**
+          - Download DriverVaultSetup.exe
+          - Run the installer
+          - Start DriverVault from the Start Menu
           - Use **Backup** before reinstalling Windows
           - Use **Validate** and then **Restore** after reinstalling Windows
 
-          ## Скачать
+          Portable users can still download DriverVault.exe directly.
 
-          - Скачайте DriverVault.exe
-          - Нажмите правой кнопкой и выберите **Запуск от имени администратора**
+          ## Рекомендуемая загрузка
+
+          - Скачайте DriverVaultSetup.exe
+          - Запустите установщик
+          - Откройте DriverVault из меню Пуск
           - Используйте **Сохранить** перед переустановкой Windows
           - После переустановки нажмите **Проверить**, затем **Восстановить**
 
+          Portable-версия DriverVault.exe тоже доступна отдельно.
+
           ## SHA256
 
-          SHA256 for DriverVault.exe: $env:DRIVERVAULT_SHA256
+          DriverVaultSetup.exe: $env:DRIVERVAULT_SETUP_SHA256
+          DriverVault.exe: $env:DRIVERVAULT_SHA256
           "@
           Set-Content -LiteralPath release-notes.md -Encoding UTF8 -Value $notes
 
           $zipPath = "dist/DriverVault-$env:DRIVERVAULT_ASSET_VERSION.zip"
+          $assets = @(
+            "dist/DriverVaultSetup.exe",
+            "dist/DriverVaultSetup.exe.sha256",
+            "dist/DriverVault.exe",
+            "dist/DriverVault.exe.sha256",
+            $zipPath
+          )
           if (gh release view $tag *> $null) {
-            gh release upload $tag dist/DriverVault.exe dist/DriverVault.exe.sha256 $zipPath --clobber
+            gh release upload $tag $assets --clobber
           }
           else {
-            gh release create $tag dist/DriverVault.exe dist/DriverVault.exe.sha256 $zipPath --title "DriverVault $tag" --notes-file release-notes.md --latest --verify-tag
+            gh release create $tag $assets --title "DriverVault $tag" --notes-file release-notes.md --latest --verify-tag
           }

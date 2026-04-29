@@ -22,9 +22,23 @@ DriverVault - портативная утилита для Windows, котора
 | English | [Full English documentation](docs/en/README.md) |
 | Русский | [Полная документация на русском](docs/ru/README.md) |
 
-## Download Ready-To-Run EXE
+## Download Installer
 
-For most users, the easiest option is to download the ready-to-run Windows EXE:
+For most users, the easiest option is the normal Windows installer:
+
+[Download DriverVaultSetup.exe](https://github.com/StanislavDjango/Driver-Backup/releases/latest/download/DriverVaultSetup.exe)
+
+It installs DriverVault into Program Files, adds Start Menu shortcuts and includes an uninstaller.
+
+Для большинства пользователей самый простой вариант - обычный установщик Windows:
+
+[Скачать DriverVaultSetup.exe](https://github.com/StanislavDjango/Driver-Backup/releases/latest/download/DriverVaultSetup.exe)
+
+Он установит DriverVault в Program Files, добавит ярлыки в меню Пуск и создаст удаление программы.
+
+## Portable EXE
+
+You can also download the portable EXE without installation:
 
 [Download DriverVault.exe](https://github.com/StanislavDjango/Driver-Backup/releases/latest/download/DriverVault.exe)
 
@@ -133,7 +147,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Build-DriverVaultExe.p
 
 The build script uses PS2EXE and creates `dist\DriverVault.exe`. Generated binaries are not required for development; the `.ps1` and `.cmd` files are enough to run the tool.
 
-GitHub Actions also builds release binaries automatically whenever a version tag like `v0.4.1` is pushed.
+GitHub Actions also builds release binaries automatically whenever a version tag like `v0.4.2` is pushed.
 
 ## Run Tests
 

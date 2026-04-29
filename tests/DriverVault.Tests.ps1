@@ -44,7 +44,7 @@ BeforeAll {
         if (-not $SkipManifest) {
             $manifest = [ordered]@{
                 ToolName          = "DriverVault"
-                ToolVersion       = "0.4.1"
+                ToolVersion       = "0.4.2"
                 Language          = "en"
                 CreatedAt         = (Get-Date).ToString("o")
                 BackupRoot        = $root
