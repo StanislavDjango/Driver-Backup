@@ -93,6 +93,12 @@ $script:Strings = @{
         DriverStoreCopied    = "DriverStore packages copied: {0}"
         FoundInfCount         = "Found INF files: {0}"
         HeaderSubtitle        = "Local driver backup and restore for this PC."
+        HistoryButton         = "History"
+        HistoryEmpty          = "No DriverVault backups were found near the selected folder or on the Desktop."
+        HistoryOpen           = "Open"
+        HistoryRefresh        = "Refresh"
+        HistorySelect         = "Use selected"
+        HistoryTitle          = "Backup history"
         InfFiles              = "INF files: {0}"
         InspectButton         = "Details"
         InspectChecksumFailed = "SHA256 failed"
@@ -145,6 +151,7 @@ $script:Strings = @{
         Canceling             = "Canceling operation..."
         DetailLogHint         = "System details are written to the log file."
         FinalBackupSummary    = "Backup ready: {0} INF, {1} files, {2} checksums."
+        FinalBackupTitle      = "Backup ready"
         FinalInspectSummary   = "Details ready: {0} INF, {1} files, {2}."
         FinalRestoreSummary   = "Restore finished: {0} INF packages were sent to Windows."
         FinalDryRunSummary    = "Dry run passed: {0} INF packages would be added. Report: {1}"
@@ -157,6 +164,7 @@ $script:Strings = @{
         OperationCanceled     = "Operation canceled."
         OldFailedRemoved      = "Removed old failed backup: {0}"
         ErrorAccessDenied     = "Windows denied access to a file or folder. Run as Administrator and make sure antivirus or another program is not blocking the backup."
+        ErrorCodeLine         = "Error code: {0}"
         ErrorAdminRequired    = "No administrator rights. Restart DriverVault as Administrator."
         ErrorBackupDamaged    = "Backup folder looks damaged: {0}"
         ErrorBackupMetadataDamaged = "Backup folder looks damaged: {0} cannot be read."
@@ -250,6 +258,12 @@ $script:Strings = @{
         DriverStoreCopied    = "Скопировано пакетов из DriverStore: {0}"
         FoundInfCount         = "Найдено INF-файлов: {0}"
         HeaderSubtitle        = "Локальная копия драйверов и быстрое восстановление на этом ПК."
+        HistoryButton         = "История"
+        HistoryEmpty          = "Копии DriverVault рядом с выбранной папкой или на рабочем столе не найдены."
+        HistoryOpen           = "Открыть"
+        HistoryRefresh        = "Обновить"
+        HistorySelect         = "Выбрать"
+        HistoryTitle          = "История копий"
         InfFiles              = "INF-файлов: {0}"
         InspectButton         = "Сведения"
         InspectChecksumFailed = "SHA256 не пройден"
@@ -302,6 +316,7 @@ $script:Strings = @{
         Canceling             = "Отменяю операцию..."
         DetailLogHint         = "Системные подробности записываются в файл журнала."
         FinalBackupSummary    = "Копия готова: INF {0}, файлов {1}, SHA256 {2}."
+        FinalBackupTitle      = "Копия готова"
         FinalInspectSummary   = "Сведения готовы: INF {0}, файлов {1}, {2}."
         FinalRestoreSummary   = "Восстановление завершено: Windows получила {0} INF-пакетов."
         FinalDryRunSummary    = "Пробная проверка пройдена: будет добавлено INF {0}. Отчёт: {1}"
@@ -314,6 +329,7 @@ $script:Strings = @{
         OperationCanceled     = "Операция отменена."
         OldFailedRemoved      = "Удалена старая неудачная копия: {0}"
         ErrorAccessDenied     = "Windows запретила доступ к файлу или папке. Запустите от имени администратора и проверьте, что антивирус или другая программа не блокирует копию."
+        ErrorCodeLine         = "Код ошибки: {0}"
         ErrorAdminRequired    = "Нет прав администратора. Перезапустите DriverVault от имени администратора."
         ErrorBackupDamaged    = "Папка резервной копии повреждена: {0}"
         ErrorBackupMetadataDamaged = "Папка резервной копии повреждена: не читается {0}."
@@ -374,6 +390,44 @@ function T {
         return ($value -f $Args)
     }
     return $value
+}
+
+function New-DriverVaultError {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Code,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Message,
+
+        [Exception]$InnerException = $null
+    )
+
+    if ($InnerException) {
+        $exception = New-Object InvalidOperationException -ArgumentList $Message, $InnerException
+    }
+    else {
+        $exception = New-Object InvalidOperationException -ArgumentList $Message
+    }
+    $exception.Data["DriverVaultCode"] = $Code
+    return $exception
+}
+
+function Get-DriverVaultErrorCode {
+    param(
+        [System.Management.Automation.ErrorRecord]$ErrorRecord = $null,
+        [Exception]$Exception = $null
+    )
+
+    $current = if ($ErrorRecord) { $ErrorRecord.Exception } else { $Exception }
+    while ($current) {
+        if ($current.Data -and $current.Data.Contains("DriverVaultCode")) {
+            return [string]$current.Data["DriverVaultCode"]
+        }
+        $current = $current.InnerException
+    }
+
+    return ""
 }
 
 function Set-DriverVaultStatus {
@@ -439,7 +493,7 @@ function Request-DriverVaultCancel {
 
 function Test-DriverVaultCancel {
     if ($script:CancelRequested) {
-        throw (T "OperationCanceled")
+        throw (New-DriverVaultError -Code "CANCELED" -Message (T "OperationCanceled"))
     }
 }
 
@@ -653,7 +707,12 @@ function Write-FriendlyCaughtError {
 
     $friendly = Get-FriendlyExceptionMessage -ErrorRecord $ErrorRecord
     $raw = [string]$ErrorRecord.Exception.Message
+    $code = Get-DriverVaultErrorCode -ErrorRecord $ErrorRecord
     Write-DriverVaultLog $friendly "ERROR"
+
+    if (-not [string]::IsNullOrWhiteSpace($code)) {
+        Write-DriverVaultLog (T "ErrorCodeLine" $code) "WARN" -Detail
+    }
 
     if ($raw -and $raw -ne $friendly) {
         Write-DriverVaultLog (T "TechnicalDetails" $raw) "WARN" -Detail
@@ -693,7 +752,7 @@ function Get-SystemToolPath {
 function Get-DriverStoreCandidatePackages {
     $source = Join-Path $env:SystemRoot "System32\DriverStore\FileRepository"
     if (-not (Test-Path -LiteralPath $source)) {
-        throw "DriverStore FileRepository was not found: $source"
+        throw (New-DriverVaultError -Code "DRIVERSTORE_MISSING" -Message "DriverStore FileRepository was not found: $source")
     }
 
     Get-ChildItem -LiteralPath $source -Directory -ErrorAction Stop |
@@ -833,7 +892,7 @@ function Invoke-LoggedCommand {
     }
 
     if ($wasCanceled) {
-        throw (T "OperationCanceled")
+        throw (New-DriverVaultError -Code "CANCELED" -Message (T "OperationCanceled"))
     }
 
     if ($output.Count -eq 0 -and $exitCode -ne 0) {
@@ -852,7 +911,7 @@ function Invoke-LoggedCommand {
     Write-DriverVaultLog (T "ExitCode" $exitCode)
 
     if ($ThrowOnError -and $exitCode -ne 0) {
-        throw (Get-FriendlyNativeCommandError -FilePath $FilePath -ExitCode $exitCode -Output @($output) -FailureContext $FailureContext)
+        throw (New-DriverVaultError -Code "COMMAND_FAILED" -Message (Get-FriendlyNativeCommandError -FilePath $FilePath -ExitCode $exitCode -Output @($output) -FailureContext $FailureContext))
     }
 
     return [pscustomobject]@{
@@ -932,7 +991,7 @@ function Invoke-DriverExport {
     Write-DriverVaultLog (T "DriverStoreFallback") "WARN"
     $copied = Copy-DriverStoreFallback -DriversDir $DriversDir
     if ($copied -le 0) {
-        throw (T "ErrorCommandFailedFriendly" "DriverStore copy fallback", 1)
+        throw (New-DriverVaultError -Code "COMMAND_FAILED" -Message (T "ErrorCommandFailedFriendly" "DriverStore copy fallback", 1))
     }
 
     return [pscustomobject]@{
@@ -1015,7 +1074,7 @@ function New-UniqueBackupPath {
         Start-Sleep -Milliseconds 20
     }
 
-    throw (T "ErrorUnexpected" "Could not create a unique backup folder name.")
+    throw (New-DriverVaultError -Code "UNEXPECTED" -Message (T "ErrorUnexpected" "Could not create a unique backup folder name."))
 }
 
 function Resolve-BackupDestinationPath {
@@ -1027,7 +1086,7 @@ function Resolve-BackupDestinationPath {
 
     $root = [IO.Path]::GetFullPath($Path)
     if (Test-Path -LiteralPath $root -PathType Leaf) {
-        throw (T "ErrorPathMissing")
+        throw (New-DriverVaultError -Code "PATH_MISSING" -Message (T "ErrorPathMissing"))
     }
 
     if (Test-Path -LiteralPath $root -PathType Container) {
@@ -1063,7 +1122,7 @@ function Read-DriverVaultJsonFile {
         return (Get-Content -LiteralPath $Path -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop)
     }
     catch {
-        throw (T "ErrorBackupMetadataDamaged" (Split-Path -Leaf $Path))
+        throw (New-DriverVaultError -Code "METADATA_DAMAGED" -Message (T "ErrorBackupMetadataDamaged" (Split-Path -Leaf $Path)) -InnerException $_.Exception)
     }
 }
 
@@ -1164,7 +1223,7 @@ function Test-RequiredFreeSpace {
     Write-DriverVaultLog (T "CheckingFreeSpace" $free.Root)
 
     if ($free.FreeBytes -lt $RequiredBytes) {
-        throw (T $LowSpaceStringKey $free.Root, (Format-DriverVaultByteSize $free.FreeBytes), (Format-DriverVaultByteSize $RequiredBytes))
+        throw (New-DriverVaultError -Code "NO_SPACE" -Message (T $LowSpaceStringKey $free.Root, (Format-DriverVaultByteSize $free.FreeBytes), (Format-DriverVaultByteSize $RequiredBytes)))
     }
 
     Write-DriverVaultLog (T "FreeSpaceOk" (Format-DriverVaultByteSize $free.FreeBytes), (Format-DriverVaultByteSize $RequiredBytes)) "OK"
@@ -1373,6 +1432,169 @@ function Get-LatestBackupDisplayName {
     return $latest.LastWriteTime.ToString("dd.MM HH:mm")
 }
 
+function Get-BackupHistorySearchRoots {
+    param([string]$SelectedPath)
+
+    $roots = New-Object System.Collections.Generic.List[string]
+    $desktop = [Environment]::GetFolderPath("Desktop")
+    if (-not [string]::IsNullOrWhiteSpace($desktop)) {
+        [void]$roots.Add($desktop)
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($SelectedPath)) {
+        try {
+            $fullPath = [IO.Path]::GetFullPath($SelectedPath)
+            if (Test-Path -LiteralPath $fullPath -PathType Leaf) {
+                $parent = Split-Path -Parent $fullPath
+                if ($parent) { [void]$roots.Add($parent) }
+            }
+            elseif (Test-Path -LiteralPath $fullPath -PathType Container) {
+                [void]$roots.Add($fullPath)
+                if (Test-DriverVaultBackupMarker -Path $fullPath) {
+                    $parent = Split-Path -Parent $fullPath
+                    if ($parent) { [void]$roots.Add($parent) }
+                }
+            }
+            else {
+                $parent = Split-Path -Parent $fullPath
+                if ($parent) { [void]$roots.Add($parent) }
+            }
+        }
+        catch {
+            Write-DriverVaultLog $_.Exception.Message "WARN" -Detail
+        }
+    }
+
+    $seen = @{}
+    foreach ($root in $roots) {
+        if ([string]::IsNullOrWhiteSpace($root)) {
+            continue
+        }
+        try {
+            $normalized = [IO.Path]::GetFullPath($root).TrimEnd('\')
+        }
+        catch {
+            continue
+        }
+        $key = $normalized.ToLowerInvariant()
+        if (-not $seen.ContainsKey($key)) {
+            $seen[$key] = $true
+            $normalized
+        }
+    }
+}
+
+function Get-DriverVaultBackupHistoryItem {
+    param([string]$Path)
+
+    $root = [IO.Path]::GetFullPath($Path)
+    $driversDir = Join-Path $root "Drivers"
+    $manifestPath = Join-Path $root "manifest.json"
+    $checksumPath = Join-Path $root "checksums.json"
+    $folder = Get-Item -LiteralPath $root -ErrorAction Stop
+
+    $createdText = $folder.LastWriteTime.ToString("yyyy-MM-dd HH:mm")
+    $machineText = "-"
+    $osText = "-"
+    $scopeText = "-"
+    $exportMethod = "-"
+    $machineStatus = "Unknown"
+    $warningText = ""
+
+    if (Test-Path -LiteralPath $manifestPath) {
+        try {
+            $manifest = Read-DriverVaultJsonFile -Path $manifestPath
+            if ($manifest.CreatedAt) { $createdText = [string]$manifest.CreatedAt }
+            if ($manifest.Machine) {
+                $machineText = ("{0} {1}" -f $manifest.Machine.Manufacturer, $manifest.Machine.Model).Trim()
+                $osText = ("{0} {1}" -f $manifest.Machine.OSName, $manifest.Machine.OSVersion).Trim()
+
+                $savedMachine = @{}
+                foreach ($prop in $manifest.Machine.PSObject.Properties) {
+                    $savedMachine[$prop.Name] = $prop.Value
+                }
+                $mismatches = @(Compare-MachineIdentity -SavedMachine $savedMachine)
+                $machineStatus = if ($mismatches.Count -eq 0) { "Same" } else { "Mismatch" }
+            }
+            $scopeText = Get-BackupScopeDisplayText -Scope ([string]$manifest.BackupScope)
+            if ($manifest.ExportMethod) { $exportMethod = [string]$manifest.ExportMethod }
+        }
+        catch {
+            $warningText = Get-FriendlyExceptionMessage -ErrorRecord $_
+        }
+    }
+
+    $infFiles = if (Test-Path -LiteralPath $driversDir) {
+        @(Get-ChildItem -LiteralPath $driversDir -Filter "*.inf" -Recurse -ErrorAction SilentlyContinue)
+    }
+    else {
+        @()
+    }
+    $driverFiles = @(Get-DriverBackupFiles -DriversDir $driversDir)
+    $checksumText = if (Test-Path -LiteralPath $checksumPath) { T "InspectChecksumOk" } else { T "InspectChecksumMissing" }
+    $machineStatusText = Get-MachineStatusText -MachineStatus $machineStatus
+    if ([string]::IsNullOrWhiteSpace($machineText)) { $machineText = "-" }
+    if ([string]::IsNullOrWhiteSpace($osText)) { $osText = "-" }
+
+    return [pscustomobject]@{
+        Root               = $root
+        Name               = Split-Path -Leaf $root
+        CreatedText        = $createdText
+        MachineText        = $machineText
+        OsText             = $osText
+        ScopeText          = $scopeText
+        ExportMethod       = $exportMethod
+        InfCount           = $infFiles.Count
+        FileCount          = $driverFiles.Count
+        BackupSize         = Get-DirectorySizeBytes -Path $root
+        BackupSizeText     = Format-DriverVaultByteSize (Get-DirectorySizeBytes -Path $root)
+        ChecksumStatusText = $checksumText
+        MachineStatus      = $machineStatus
+        MachineStatusText  = $machineStatusText
+        WarningText        = $warningText
+        LastWriteTime      = $folder.LastWriteTime
+    }
+}
+
+function Get-DriverVaultBackupHistory {
+    param([string]$SelectedPath)
+
+    $candidates = New-Object System.Collections.Generic.List[string]
+    foreach ($root in @(Get-BackupHistorySearchRoots -SelectedPath $SelectedPath)) {
+        if (-not (Test-Path -LiteralPath $root -PathType Container)) {
+            continue
+        }
+
+        if (Test-DriverVaultBackupMarker -Path $root) {
+            [void]$candidates.Add($root)
+        }
+
+        Get-ChildItem -LiteralPath $root -Directory -Filter "DriverVault_*" -ErrorAction SilentlyContinue | ForEach-Object {
+            if (Test-DriverVaultBackupMarker -Path $_.FullName) {
+                [void]$candidates.Add($_.FullName)
+            }
+        }
+    }
+
+    $seen = @{}
+    $items = foreach ($path in $candidates) {
+        try {
+            $normalized = [IO.Path]::GetFullPath($path).TrimEnd('\')
+            $key = $normalized.ToLowerInvariant()
+            if ($seen.ContainsKey($key)) {
+                continue
+            }
+            $seen[$key] = $true
+            Get-DriverVaultBackupHistoryItem -Path $normalized
+        }
+        catch {
+            Write-DriverVaultLog $_.Exception.Message "WARN" -Detail
+        }
+    }
+
+    return @($items | Sort-Object LastWriteTime -Descending)
+}
+
 function Remove-OldFailedBackups {
     $desktop = [Environment]::GetFolderPath("Desktop")
     $cutoff = (Get-Date).AddDays(-7)
@@ -1402,7 +1624,7 @@ function Export-DriverBackup {
     )
 
     if (-not (Test-IsAdministrator)) {
-        throw (T "BackupRequiresAdmin")
+        throw (New-DriverVaultError -Code "NO_ADMIN" -Message (T "BackupRequiresAdmin"))
     }
 
     $root = Resolve-BackupDestinationPath -Path $Path
@@ -1546,7 +1768,7 @@ function Get-BackupMachineMismatches {
 
     $manifest = Read-DriverVaultJsonFile -Path $manifestPath
     if (-not $manifest.Machine) {
-        throw (T "ErrorBackupMetadataDamaged" "manifest.json")
+        throw (New-DriverVaultError -Code "METADATA_DAMAGED" -Message (T "ErrorBackupMetadataDamaged" "manifest.json"))
     }
 
     $savedMachine = @{}
@@ -1564,7 +1786,7 @@ function Test-DriverBackup {
     )
 
     if ([string]::IsNullOrWhiteSpace($Path)) {
-        throw (T "InspectPathRequired")
+        throw (New-DriverVaultError -Code "INSPECT_PATH_REQUIRED" -Message (T "InspectPathRequired"))
     }
 
     $root = [IO.Path]::GetFullPath($Path)
@@ -1572,11 +1794,11 @@ function Test-DriverBackup {
     $manifestPath = Join-Path $root "manifest.json"
 
     if (-not (Test-Path -LiteralPath $root)) {
-        throw (T "ErrorBackupPathMissing" $root)
+        throw (New-DriverVaultError -Code "BACKUP_PATH_MISSING" -Message (T "ErrorBackupPathMissing" $root))
     }
 
     if (-not (Test-Path -LiteralPath $driversDir)) {
-        throw (T "DriversFolderMissing" $driversDir)
+        throw (New-DriverVaultError -Code "DRIVERS_FOLDER_MISSING" -Message (T "DriversFolderMissing" $driversDir))
     }
 
     $infFiles = @(Get-ChildItem -LiteralPath $driversDir -Filter "*.inf" -Recurse -ErrorAction SilentlyContinue)
@@ -1584,7 +1806,7 @@ function Test-DriverBackup {
     Write-DriverVaultLog (T "FoundInfCount" $infFiles.Count)
 
     if ($infFiles.Count -eq 0) {
-        throw (T "NoInfFound" $driversDir)
+        throw (New-DriverVaultError -Code "NO_INF" -Message (T "NoInfFound" $driversDir))
     }
 
     $mismatches = @()
@@ -1602,20 +1824,20 @@ function Test-DriverBackup {
                 Write-DriverVaultLog (T "MachineMismatch" $mismatch) "WARN"
             }
             if ($StopOnMachineMismatch) {
-                throw (T "MachineMismatchBlocked")
+                throw (New-DriverVaultError -Code "WRONG_PC" -Message (T "MachineMismatchBlocked"))
             }
         }
     }
     else {
         Write-DriverVaultLog (T "MachineCheckUnavailable") "WARN"
         if ($RequireManifest) {
-            throw (T "RestoreManifestRequired")
+            throw (New-DriverVaultError -Code "MANIFEST_REQUIRED" -Message (T "RestoreManifestRequired"))
         }
     }
 
     $checksumResult = Test-DriverChecksumFile -Root $root
     if (-not $checksumResult.IsValid) {
-        throw (T "ErrorChecksumDamaged" $checksumResult.Missing, $checksumResult.Mismatch, $checksumResult.Unreadable)
+        throw (New-DriverVaultError -Code "CHECKSUM_DAMAGED" -Message (T "ErrorChecksumDamaged" $checksumResult.Missing, $checksumResult.Mismatch, $checksumResult.Unreadable))
     }
 
     Write-DriverVaultLog (T "BackupLooksUsable") "OK"
@@ -1780,13 +2002,13 @@ function Invoke-DriverRestoreDryRun {
     param([string]$Path)
 
     if ([string]::IsNullOrWhiteSpace($Path)) {
-        throw (T "RestorePathRequired")
+        throw (New-DriverVaultError -Code "RESTORE_PATH_REQUIRED" -Message (T "RestorePathRequired"))
     }
 
     $root = [IO.Path]::GetFullPath($Path)
     $driversDir = Join-Path $root "Drivers"
     if (-not (Test-Path -LiteralPath $root)) {
-        throw (T "ErrorBackupPathMissing" $root)
+        throw (New-DriverVaultError -Code "BACKUP_PATH_MISSING" -Message (T "ErrorBackupPathMissing" $root))
     }
 
     $logsDir = Join-Path $root "Logs"
@@ -1798,7 +2020,7 @@ function Invoke-DriverRestoreDryRun {
 
     $readability = Test-DriverBackupFileReadability -Root $root -DriversDir $driversDir
     if (-not $readability.IsValid) {
-        throw (T "DryRunReadFailed" $readability.Failures.Count)
+        throw (New-DriverVaultError -Code "FILE_READ_FAILED" -Message (T "DryRunReadFailed" $readability.Failures.Count))
     }
 
     $infFiles = @(Get-ChildItem -LiteralPath $driversDir -Filter "*.inf" -Recurse -ErrorAction SilentlyContinue | Sort-Object FullName)
@@ -1868,17 +2090,17 @@ function Import-DriverBackup {
     )
 
     if (-not (Test-IsAdministrator)) {
-        throw (T "RestoreRequiresAdmin")
+        throw (New-DriverVaultError -Code "NO_ADMIN" -Message (T "RestoreRequiresAdmin"))
     }
 
     if ([string]::IsNullOrWhiteSpace($Path)) {
-        throw (T "RestorePathRequired")
+        throw (New-DriverVaultError -Code "RESTORE_PATH_REQUIRED" -Message (T "RestorePathRequired"))
     }
 
     $root = [IO.Path]::GetFullPath($Path)
     $driversDir = Join-Path $root "Drivers"
     if (-not (Test-Path -LiteralPath $root)) {
-        throw (T "ErrorBackupPathMissing" $root)
+        throw (New-DriverVaultError -Code "BACKUP_PATH_MISSING" -Message (T "ErrorBackupPathMissing" $root))
     }
 
     $logsDir = Join-Path $root "Logs"
@@ -1946,12 +2168,12 @@ function Inspect-DriverBackup {
     param([string]$Path)
 
     if ([string]::IsNullOrWhiteSpace($Path)) {
-        throw (T "InspectPathRequired")
+        throw (New-DriverVaultError -Code "INSPECT_PATH_REQUIRED" -Message (T "InspectPathRequired"))
     }
 
     $root = [IO.Path]::GetFullPath($Path)
     if (-not (Test-Path -LiteralPath $root)) {
-        throw (T "ErrorBackupPathMissing" $root)
+        throw (New-DriverVaultError -Code "BACKUP_PATH_MISSING" -Message (T "ErrorBackupPathMissing" $root))
     }
 
     $manifestPath = Join-Path $root "manifest.json"
@@ -2071,7 +2293,7 @@ function Restart-DriverVaultElevated {
     )
 
     if (-not $PSCommandPath) {
-        throw (T "ScriptPathUnknown")
+        throw (New-DriverVaultError -Code "SCRIPT_PATH_UNKNOWN" -Message (T "ScriptPathUnknown"))
     }
 
     $arguments = @(
@@ -2369,6 +2591,204 @@ function Show-DriverVaultGui {
         [void]$dialog.ShowDialog($form)
     }
 
+    function Show-DvBackupCompleteDialog {
+        param([object]$Summary)
+
+        if (-not $Summary) {
+            return
+        }
+
+        $dialog = New-Object System.Windows.Forms.Form
+        $dialog.Text = T "FinalBackupTitle"
+        $dialog.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
+        $dialog.ClientSize = New-Object System.Drawing.Size(660, 360)
+        $dialog.StartPosition = "CenterParent"
+        $dialog.MinimumSize = New-Object System.Drawing.Size(620, 340)
+        $dialog.BackColor = $colors.Window
+        $dialog.ForeColor = $colors.Text
+        $dialog.Font = New-Object System.Drawing.Font($fontUi, 9.5, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Point)
+
+        $titleLabel = New-DvLabel -Text (T "FinalBackupTitle") -X 24 -Y 20 -Size 20 -Style ([System.Drawing.FontStyle]::Bold) -Color $colors.Success
+        $dialog.Controls.Add($titleLabel)
+
+        $messageLabel = New-DvLabel -Text ([string]$Summary.Message) -X 26 -Y 58 -Size 10 -Color $colors.Muted
+        $messageLabel.AutoSize = $false
+        $messageLabel.AutoEllipsis = $true
+        $messageLabel.Size = New-Object System.Drawing.Size(610, 22)
+        $dialog.Controls.Add($messageLabel)
+
+        $pathLabel = New-DvLabel -Text ([string]$Summary.Root) -X 26 -Y 86 -Size 9 -Color $colors.Muted
+        $pathLabel.AutoSize = $false
+        $pathLabel.AutoEllipsis = $true
+        $pathLabel.Size = New-Object System.Drawing.Size(610, 22)
+        $dialog.Controls.Add($pathLabel)
+
+        $backupSizeText = if ($Summary.BackupSize -ne $null) { Format-DriverVaultByteSize ([int64]$Summary.BackupSize) } else { "-" }
+        $cardDefinitions = @(
+            [pscustomobject]@{ Title = T "InspectInfCount"; Value = [string]$Summary.InfCount; Color = $colors.Success },
+            [pscustomobject]@{ Title = T "InspectFileCount"; Value = [string]$Summary.FileCount; Color = $colors.Text },
+            [pscustomobject]@{ Title = T "InspectSha256"; Value = [string]$Summary.ChecksumCount; Color = $colors.Success },
+            [pscustomobject]@{ Title = T "InspectSize"; Value = $backupSizeText; Color = $colors.Text },
+            [pscustomobject]@{ Title = T "InspectMode"; Value = (Get-BackupScopeDisplayText -Scope ([string]$Summary.Scope)); Color = $colors.Text },
+            [pscustomobject]@{ Title = T "InspectExportMethod"; Value = [string]$Summary.Method; Color = $colors.Text }
+        )
+
+        $cardWidth = 192
+        $gap = 14
+        for ($index = 0; $index -lt $cardDefinitions.Count; $index++) {
+            $row = [Math]::Floor($index / 3)
+            $col = $index % 3
+            $card = New-DvStatusCard -Title $cardDefinitions[$index].Title -Value $cardDefinitions[$index].Value -X (26 + ($col * ($cardWidth + $gap))) -Y (126 + ($row * 74)) -Width $cardWidth -ValueColor $cardDefinitions[$index].Color
+            $dialog.Controls.Add($card.Panel)
+        }
+
+        $openButtonDialog = New-DvButton -Text (T "OpenFolder") -X 262 -Y 304 -Width 108 -Height 34
+        $openButtonDialog.Anchor = "Bottom,Right"
+        $openButtonDialog.Add_Click({
+            if ($Summary.Root -and (Test-Path -LiteralPath $Summary.Root)) {
+                Start-Process explorer.exe -ArgumentList ('"{0}"' -f $Summary.Root)
+            }
+        })
+        $dialog.Controls.Add($openButtonDialog)
+
+        $detailsButtonDialog = New-DvButton -Text (T "InspectButton") -X 382 -Y 304 -Width 108 -Height 34
+        $detailsButtonDialog.Anchor = "Bottom,Right"
+        $detailsButtonDialog.Add_Click({
+            try {
+                $details = Inspect-DriverBackup -Path ([string]$Summary.Root)
+                Show-DvInspectDialog -Summary $details
+            }
+            catch {
+                [void](Write-FriendlyCaughtError $_)
+            }
+        })
+        $dialog.Controls.Add($detailsButtonDialog)
+
+        $closeButton = New-DvButton -Text (T "InspectClose") -X 502 -Y 304 -Width 120 -Height 34 -BackColor $colors.Accent
+        $closeButton.Anchor = "Bottom,Right"
+        $closeButton.Add_Click({ $dialog.Close() })
+        $dialog.AcceptButton = $closeButton
+        $dialog.CancelButton = $closeButton
+        $dialog.Controls.Add($closeButton)
+
+        [void]$dialog.ShowDialog($form)
+    }
+
+    function Show-DvHistoryDialog {
+        $dialog = New-Object System.Windows.Forms.Form
+        $dialog.Text = T "HistoryTitle"
+        $dialog.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
+        $dialog.ClientSize = New-Object System.Drawing.Size(900, 520)
+        $dialog.StartPosition = "CenterParent"
+        $dialog.MinimumSize = New-Object System.Drawing.Size(820, 460)
+        $dialog.BackColor = $colors.Window
+        $dialog.ForeColor = $colors.Text
+        $dialog.Font = New-Object System.Drawing.Font($fontUi, 9.5, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Point)
+
+        $titleLabel = New-DvLabel -Text (T "HistoryTitle") -X 24 -Y 18 -Size 18 -Style ([System.Drawing.FontStyle]::Bold)
+        $dialog.Controls.Add($titleLabel)
+
+        $hintLabel = New-DvLabel -Text (T "HistoryEmpty") -X 26 -Y 50 -Size 9 -Color $colors.Muted
+        $hintLabel.AutoSize = $false
+        $hintLabel.AutoEllipsis = $true
+        $hintLabel.Size = New-Object System.Drawing.Size(840, 22)
+        $dialog.Controls.Add($hintLabel)
+
+        $historyList = New-Object System.Windows.Forms.ListView
+        $historyList.Location = New-Object System.Drawing.Point(24, 86)
+        $historyList.Size = New-Object System.Drawing.Size(852, 360)
+        $historyList.Anchor = "Top,Bottom,Left,Right"
+        $historyList.View = [System.Windows.Forms.View]::Details
+        $historyList.FullRowSelect = $true
+        $historyList.HideSelection = $false
+        $historyList.MultiSelect = $false
+        $historyList.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+        $historyList.BackColor = $colors.LogBack
+        $historyList.ForeColor = $colors.Text
+        $historyList.Font = New-Object System.Drawing.Font($fontUi, 9, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Point)
+        [void]$historyList.Columns.Add("Name", 180)
+        [void]$historyList.Columns.Add((T "InspectCreatedAt"), 160)
+        [void]$historyList.Columns.Add((T "InspectMachine"), 170)
+        [void]$historyList.Columns.Add((T "InspectMode"), 120)
+        [void]$historyList.Columns.Add((T "InspectInfCount"), 58)
+        [void]$historyList.Columns.Add((T "InspectSize"), 92)
+        [void]$historyList.Columns.Add((T "InspectMachineFit"), 120)
+        $dialog.Controls.Add($historyList)
+
+        function Get-SelectedHistoryItem {
+            if ($historyList.SelectedItems.Count -eq 0) {
+                return $null
+            }
+            return $historyList.SelectedItems[0].Tag
+        }
+
+        function Refresh-HistoryList {
+            $historyList.Items.Clear()
+            $items = @(Get-DriverVaultBackupHistory -SelectedPath $pathText.Text)
+            foreach ($item in $items) {
+                $listItem = New-Object System.Windows.Forms.ListViewItem -ArgumentList $item.Name
+                [void]$listItem.SubItems.Add([string]$item.CreatedText)
+                [void]$listItem.SubItems.Add([string]$item.MachineText)
+                [void]$listItem.SubItems.Add([string]$item.ScopeText)
+                [void]$listItem.SubItems.Add([string]$item.InfCount)
+                [void]$listItem.SubItems.Add([string]$item.BackupSizeText)
+                [void]$listItem.SubItems.Add([string]$item.MachineStatusText)
+                $listItem.Tag = $item
+                if ($item.MachineStatus -eq "Mismatch") {
+                    $listItem.ForeColor = $colors.Warning
+                }
+                elseif (-not [string]::IsNullOrWhiteSpace($item.WarningText)) {
+                    $listItem.ForeColor = $colors.Danger
+                }
+                [void]$historyList.Items.Add($listItem)
+            }
+            $hintLabel.Visible = ($items.Count -eq 0)
+        }
+
+        $refreshButton = New-DvButton -Text (T "HistoryRefresh") -X 464 -Y 466 -Width 108 -Height 34
+        $refreshButton.Anchor = "Bottom,Right"
+        $refreshButton.Add_Click({ Refresh-HistoryList })
+        $dialog.Controls.Add($refreshButton)
+
+        $selectButton = New-DvButton -Text (T "HistorySelect") -X 584 -Y 466 -Width 128 -Height 34 -BackColor $colors.Accent
+        $selectButton.Anchor = "Bottom,Right"
+        $selectButton.Add_Click({
+            $selected = Get-SelectedHistoryItem
+            if ($selected) {
+                $pathText.Text = [string]$selected.Root
+                $dialog.Close()
+            }
+        })
+        $dialog.Controls.Add($selectButton)
+
+        $openHistoryButton = New-DvButton -Text (T "HistoryOpen") -X 724 -Y 466 -Width 72 -Height 34
+        $openHistoryButton.Anchor = "Bottom,Right"
+        $openHistoryButton.Add_Click({
+            $selected = Get-SelectedHistoryItem
+            if ($selected -and (Test-Path -LiteralPath $selected.Root)) {
+                Start-Process explorer.exe -ArgumentList ('"{0}"' -f $selected.Root)
+            }
+        })
+        $dialog.Controls.Add($openHistoryButton)
+
+        $closeButton = New-DvButton -Text (T "InspectClose") -X 808 -Y 466 -Width 68 -Height 34
+        $closeButton.Anchor = "Bottom,Right"
+        $closeButton.Add_Click({ $dialog.Close() })
+        $dialog.CancelButton = $closeButton
+        $dialog.Controls.Add($closeButton)
+
+        $historyList.Add_DoubleClick({
+            $selected = Get-SelectedHistoryItem
+            if ($selected) {
+                $pathText.Text = [string]$selected.Root
+                $dialog.Close()
+            }
+        })
+
+        Refresh-HistoryList
+        [void]$dialog.ShowDialog($form)
+    }
+
     $form = New-Object System.Windows.Forms.Form
     $form.Text = T "Title"
     $form.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
@@ -2475,6 +2895,13 @@ function Show-DriverVaultGui {
         }
     })
     $pathPanel.Controls.Add($browseButton)
+
+    $historyButton = New-DvButton -Text (T "HistoryButton") -X 632 -Y 43 -Width 96 -Height 34 -BackColor $colors.CardAlt
+    $historyButton.Anchor = "Top,Left"
+    $historyButton.Add_Click({
+        Show-DvHistoryDialog
+    })
+    $pathPanel.Controls.Add($historyButton)
 
     $zipCheck = New-Object System.Windows.Forms.CheckBox
     $zipCheck.Text = T "ZipCheck"
@@ -2643,10 +3070,15 @@ function Show-DriverVaultGui {
 
         $innerMargin = 16
         $browseWidth = 96
+        $historyWidth = 96
+        $historyGap = 10
         $browseX = $pathPanel.ClientSize.Width - $innerMargin - $browseWidth
+        $historyX = $browseX - $historyGap - $historyWidth
         $pathLabel.Location = New-Object System.Drawing.Point($innerMargin, 14)
         $pathText.Location = New-Object System.Drawing.Point($innerMargin, 44)
-        $pathText.Size = New-Object System.Drawing.Size([Math]::Max(260, $browseX - $innerMargin - 12), 28)
+        $pathText.Size = New-Object System.Drawing.Size([Math]::Max(260, $historyX - $innerMargin - 12), 28)
+        $historyButton.Location = New-Object System.Drawing.Point($historyX, 42)
+        $historyButton.Size = New-Object System.Drawing.Size($historyWidth, 32)
         $browseButton.Location = New-Object System.Drawing.Point($browseX, 42)
         $browseButton.Size = New-Object System.Drawing.Size($browseWidth, 32)
 
@@ -2698,7 +3130,7 @@ function Show-DriverVaultGui {
             [scriptblock]$AfterSuccess = $null
         )
 
-        $buttons = @($backupButton, $restoreButton, $validateButton, $dryRunButton, $inspectButton, $elevateButton, $openButton, $browseButton, $scopeCombo)
+        $buttons = @($backupButton, $restoreButton, $validateButton, $dryRunButton, $inspectButton, $elevateButton, $openButton, $browseButton, $historyButton, $scopeCombo)
         $script:CancelRequested = $false
         foreach ($button in $buttons) { $button.Enabled = $false }
         $cancelButton.Enabled = $true
@@ -2742,6 +3174,12 @@ function Show-DriverVaultGui {
         }
         & $runAction {
             Export-DriverBackup -Path $pathText.Text -Zip:($zipCheck.Checked) -Scope $(if ($scopeCombo.SelectedIndex -eq 1) { "Full" } else { "Recommended" })
+        } {
+            param($result)
+            if ($result.Root) {
+                $pathText.Text = [string]$result.Root
+            }
+            Show-DvBackupCompleteDialog -Summary $result
         }
     })
 

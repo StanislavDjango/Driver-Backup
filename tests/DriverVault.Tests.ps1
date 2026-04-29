@@ -185,6 +185,19 @@ Describe "DriverVault backup and restore guards" {
         { Import-DriverBackup -Path $backup.Root } | Should -Throw -ExpectedMessage "*manifest.json*"
         Assert-MockCalled Invoke-LoggedCommand -Times 0 -Exactly
     }
+
+    It "keeps a structured error code for missing restore metadata" {
+        $backup = New-TestDriverBackup -SkipManifest
+        Mock Test-IsAdministrator { return $true }
+
+        try {
+            Import-DriverBackup -Path $backup.Root
+            throw "Restore should have failed without manifest.json"
+        }
+        catch {
+            Get-DriverVaultErrorCode -ErrorRecord $_ | Should -Be "MANIFEST_REQUIRED"
+        }
+    }
 }
 
 Describe "DriverVault utility helpers" {
@@ -197,6 +210,15 @@ Describe "DriverVault utility helpers" {
     It "formats byte sizes for reports" {
         Format-DriverVaultByteSize -Bytes 0 | Should -Be "0 B"
         Format-DriverVaultByteSize -Bytes 1536 | Should -Match "^1[,.]5 KB$"
+    }
+
+    It "keeps structured error codes on DriverVault exceptions" {
+        try {
+            throw (New-DriverVaultError -Code "NO_INF" -Message "No INF")
+        }
+        catch {
+            Get-DriverVaultErrorCode -ErrorRecord $_ | Should -Be "NO_INF"
+        }
     }
 
     It "fails early when required free space is impossible" {
@@ -229,5 +251,17 @@ Describe "DriverVault utility helpers" {
         $resolved | Should -Not -Be $parent
         (Split-Path -Parent $resolved) | Should -Be $parent
         (Split-Path -Leaf $resolved) | Should -Match "^DriverVault_"
+    }
+
+    It "finds DriverVault backups for the history window" {
+        $backup = New-TestDriverBackup -Name "DriverVault_history_test"
+
+        $history = @(Get-DriverVaultBackupHistory -SelectedPath $backup.Root)
+        $item = @($history | Where-Object { $_.Root -eq ([IO.Path]::GetFullPath($backup.Root)) } | Select-Object -First 1)
+
+        $item.Count | Should -Be 1
+        $item[0].InfCount | Should -Be 1
+        $item[0].ChecksumStatusText | Should -Be "SHA256 OK"
+        $item[0].MachineStatus | Should -Be "Same"
     }
 }
